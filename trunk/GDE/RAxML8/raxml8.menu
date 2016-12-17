@@ -14,17 +14,20 @@
 #     - fast bootstraps
 #     - import consensus
 # 
+#  - score given tree (=calculate likelihood)
+#  - calc branchlens of given tree (+calculate likelihood) into new tree
+#  - optimize given tree into new tree
+#  - extend tree (=add species missing in tree; keep topology)
+#  - calculate bootstrap values for existing tree
+# 
 # @@@ possible use cases:
 #  - build AA tree
-#  - extend tree
-#  - optimize given tree
-#  - analyse given tree? (just calculate likelihood?)
 #  - get support SH-like support values for tree
 
 menu:Phylogeny max. Likelihood
 
 item:RAxML 8 (DNA)
-itemmethod: ${ARB_XCMD} arb_raxml8.sh -p $PROTOCOL -m $MODEL -s "$SEED" -b $BOOTSTRAPS -r $REPEATS -nt -t "$THREADS" -f INPUTFILE -n $TREENAME $MRETREE &
+itemmethod: ${ARB_XCMD} arb_raxml8.sh -p $PROTOCOL -fi "$FILTER" -it "$INPUTTREE" -m $MODEL -s "$SEED" -b $BOOTSTRAPS -r $REPEATS -nt -t "$THREADS" -f INPUTFILE -n $TREENAME $MRETREE &
 itemhelp:raxml8.help
 itemmeta:8
 seqtype:N
@@ -33,11 +36,21 @@ in:INPUTFILE
 informat:genbank
 insave:
 
+arg:INPUTTREE
+argtype:tree
+arglabel:Input tree
+argchoice:
+
 arg:PROTOCOL
 arglabel:Protocol
-argtype:chooser
-argchoice:Thorough:thorough
-argchoice:Quick:quick
+argtype:choice_menu
+argchoice:Thorough tree search:thorough
+argchoice:Quick tree search:quick
+argchoice:Add to tree:add
+argchoice:Optimize tree:optimize
+argchoice:Calculate branchlengths:calcblen
+argchoice:Calculate bootstraps:bootstrap
+argchoice:Score tree:score
 
 arg:MODEL
 argtype:chooser
@@ -47,7 +60,7 @@ argchoice:GTRCAT (faster, min 150 seqs):GTRCAT
 
 arg:REPEATS
 argtype:choice_menu
-arglabel:Searches\n(Thorough only)
+arglabel:Searches\n(Thorough+Optimize only)
 argchoice:1:1
 argchoice:5:5
 argchoice:10:10
@@ -58,7 +71,9 @@ argchoice:100:100
 arg:BOOTSTRAPS
 argtype:choice_menu
 arglabel:Bootstraps
+argchoice:No:no
 argchoice:Auto:autoMRE_IGN
+argchoice:5:5
 argchoice:10:10
 argchoice:20:20
 argchoice:50:50
@@ -67,16 +82,16 @@ argchoice:200:200
 argchoice:500:500
 argchoice:1000:1000
 
+arg:MRETREE
+argtype:choice_menu
+arglabel:Compute MRE consensus tree\n(only with bootstraps)
+argchoice:No:-nomre
+argchoice:Yes:
+
 arg:TREENAME
 argtype:text
 arglabel:Tree name
 argtext:raxml
-
-arg:MRETREE
-argtype:choice_menu
-arglabel:Compute MRE consensus tree
-argchoice:No:-nomre
-argchoice:Yes:
 
 arg:SEED
 argtype:text
