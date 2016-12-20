@@ -272,9 +272,9 @@ void TEST_DB_path() {
         GB_close(gb_main);
     }
 }
+TEST_PUBLISH(TEST_DB_path);
 
 #endif // UNIT_TESTS
 
-TEST_PUBLISH(TEST_DB_path);
 
 // --------------------------------------------------------------------------------
