@@ -2770,6 +2770,8 @@ void TEST_streamed_ascii_save_asUsedBy_silva_pipeline() {
     }
 }
 
+TEST_PUBLISH(TEST_streamed_ascii_save_asUsedBy_silva_pipeline);
+
 #endif // UNIT_TESTS
 
 // --------------------------------------------------------------------------------

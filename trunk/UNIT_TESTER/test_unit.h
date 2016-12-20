@@ -1364,12 +1364,27 @@ namespace arb_test {
 // cleanup is done (by Makefile.suite) after all unit tests have been run
 
 // --------------------------------------------------------------------------------
-// Some functions do not export information about their source location.
+// Some functions do not export information about their source location (esp. when
+// stabs-format is used).
+// If that happens the test will fail and print 'INVALID' as result.
+//
 // Fix that problem by writing
 //     TEST_PUBLISH(TEST_something)
 // just behind the function TEST_something.
+//
+// If it cannot be fixed by that use
+//
+//     void TEST_something(); // prototype
+//     TEST_PUBLISH(TEST_something);
+//     TEST_something() {
+//         ...
+//     }
 
+#if defined(DEBUG)
 #define TEST_PUBLISH(testfunction) void publish##testfunction() { testfunction(); }
+#else // NDEBUG
+#define TEST_PUBLISH(testfunction)
+#endif
 
 // --------------------------------------------------------------------------------
 

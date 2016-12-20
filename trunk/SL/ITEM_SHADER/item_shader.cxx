@@ -34,7 +34,8 @@ struct DummyPlugin: public ShaderPlugin {
     void activate(bool /*on*/) OVERRIDE {}
 };
 
-
+void TEST_shader_interface();
+TEST_PUBLISH(TEST_shader_interface);
 void TEST_shader_interface() {
     GB_shell  shell;
     GBDATA   *gb_main = GB_open("nosuch.arb", "c");
