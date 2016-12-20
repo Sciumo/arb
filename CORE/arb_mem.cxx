@@ -106,6 +106,7 @@ void TEST_allocators() {
     TEST_EXPECT_SEGFAULT(recalloc_too_much);
 #endif
 }
+TEST_PUBLISH(TEST_allocators);
 
 #endif // UNIT_TESTS
 

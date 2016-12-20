@@ -2077,4 +2077,6 @@ void TEST_SLOW_corruptedEntries_saveProtection() {
     }
 }
 
+TEST_PUBLISH(TEST_SLOW_corruptedEntries_saveProtection);
+
 #endif // UNIT_TESTS

@@ -17,6 +17,8 @@
 #include <test_unit.h>
 #endif
 
+void TEST_shaded_values();
+TEST_PUBLISH(TEST_shaded_values);
 void TEST_shaded_values() {
     // -------------------------------
     //      NoTuple (basic test):
@@ -306,6 +308,7 @@ void TEST_value_color_mapping() {
         // skipping tests for phasing SpatialTuple (hardly can understand test-results for PlanarTuple)
     }
 }
+TEST_PUBLISH(TEST_value_color_mapping);
 
 #endif // UNIT_TESTS
 

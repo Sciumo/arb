@@ -103,7 +103,6 @@ void TEST_arb_shell_expand() {
     free(res);
     
 }
-
-
+TEST_PUBLISH(TEST_arb_shell_expand);
 
 #endif
