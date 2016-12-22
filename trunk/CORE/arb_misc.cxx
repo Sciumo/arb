@@ -144,7 +144,7 @@ char *ARB_executable(const char *exe_name, const char *path) {
     }while(0)
 #endif
 
-     void TEST_float_2_ascii() {
+void TEST_float_2_ascii() {
     TEST_EXPECT_FLOAT_2_ASCII(3.141592e+00, "3.141592");
     TEST_EXPECT_FLOAT_2_ASCII(3.141592,     "3.141592");
     TEST_EXPECT_FLOAT_2_ASCII(3.14159,      "3.14159");
@@ -211,6 +211,52 @@ char *ARB_executable(const char *exe_name, const char *path) {
     TEST_EXPECT_FLOAT_2_ASCII(1000.0*1000.0*1000.0,    "1e+09");
     TEST_EXPECT_FLOAT_2_ASCII(25000.0*25000.0*25000.0, "1.5625e+13");
 }
+
+// ------------------------------------------------------------
+// test to ensure sanitizers work as expected
+
+#if 0
+void TEST_fail_address_sanitizer() {
+    static int array[5];
+    array[2] = 1;
+    array[5] = 1; // <- fails with AddressSanitizer
+
+    printf("array[5]=%i\n", array[5]);
+}
+#endif
+
+#if 0
+void TEST_fail_undef_sanitizer() {
+    // error below are not reported if AddressSanitizer bails out (TEST_fail_address_sanitizer)
+    int x  = 7;
+    int y1 = -1;
+
+    int s = x<<y1; // runtime error with ubsan: shift exponent -1 is negative (does not terminate)
+    printf("s=%i\n", s);
+
+    int o = INT_MAX;
+    int u = INT_MIN;
+    o++; // runtime error: signed integer overflow
+    u--; // runtime error: signed integer overflow
+    printf("o=%i u=%i\n", o, u);
+
+#if 0
+    int y2 = 0;
+    int z1 = x/y1;
+    int z2 = x/y2; // runtime error with ubsan: division by zero (terminates with SEGV; also w/o sanitizers)
+    printf("z1=%i z2=%i\n", z1, z2);
+#endif
+}
+#endif
+
+#if 0
+void TEST_fail_leak_sanitizer() {
+    int *p = new int[5]; // <- fails with LeakSanitizer (only reported if AddressSanitizer does not bail out (TEST_fail_address_sanitizer))
+    printf("p[3]=%i\n", p[3]);
+}
+#endif
+
+// ------------------------------------------------------------
 
 #endif // UNIT_TESTS
 
