@@ -530,22 +530,30 @@ endif
 #cflags += -save-temps# uncomment to see preprocessor output
 
 #---------------------- various sanitizers
+# There are some disabled tests in CORE/arb_misc.cxx@sanitizers
+# which trigger sanitizer reports.
 
-COMMON_SANITIZE_FLAGS:=-ggdb3 -fno-omit-frame-pointer
+ifeq ($(SANITIZE_ANY),1)
+ cflags  += -ggdb3 -fno-omit-frame-pointer
+endif
 
 # activate AddressSanitizer+LeakSanitizer?
 ifeq ($(SANITIZE_ADDRESS),1)
- cflags += $(COMMON_SANITIZE_FLAGS) -fsanitize=address
- dflags += -DLEAKS_SANITIZED
- EXECLIBS += -lasan
-# EXECLIBS += -static-libasan
+ cflags  += -fsanitize=address
+ clflags += -fsanitize=address
+ dflags  += -DLEAKS_SANITIZED
 endif
 
 # activate UndefinedBehaviorSanitizer?
 ifeq ($(SANITIZE_UNDEFINED),1)
- cflags += $(COMMON_SANITIZE_FLAGS) -fsanitize=undefined
-# uncomment next line to abort on runtime errors (needs 'rebuild')
-#cflags += -fno-sanitize-recover
+ cflags  += -fsanitize=undefined
+ clflags += -fsanitize=undefined
+ dflags  += -DUNDEF_SANITIZED
+ ifeq ('$(USE_GCC_50_OR_HIGHER)','yes')
+   # abort on runtime errors
+   cflags += -fno-sanitize-recover=all
+ endif
+#
 # Note: alignment-sanitizer is deactivated for ARBDB and PROBE!
  ifeq ('$(DEBUG)','1')
   ifeq ($(USE_GCC_MAJOR),4)
@@ -558,7 +566,6 @@ ifeq ($(SANITIZE_UNDEFINED),1)
    endif
   endif
  endif
- EXECLIBS += -lubsan
 endif
 
 #---------------------- X11 location
