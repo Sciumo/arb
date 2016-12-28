@@ -390,6 +390,33 @@ void TEST_less_equal() {
 }
 TEST_PUBLISH(TEST_less_equal);
 
+class readModified { // modifies on "read" (used to test unwanted double-evaluation)
+    int val;
+public:
+    readModified(int v) : val(v) {}
+    void set(int n) { val = n; }
+    int getAndMod(int n) {
+        int v = val;
+        set(n);
+        return v;
+    }
+};
+
+void TEST_single_eval() {
+    readModified mod(5);
+    TEST_EXPECT_EQUAL__BROKEN(mod.getAndMod(2), 2, 5); // now succeeds (this is no broken test; it tests behavior of TEST_EXPECT_EQUAL__BROKEN!)
+
+    mod.set(5);
+    TEST_EXPECT_IN_RANGE(mod.getAndMod(10), 4, 6);
+    TEST_EXPECT_EQUAL(mod.getAndMod(10), 10);
+    TEST_EXPECT_IN_RANGE__BROKEN(mod.getAndMod(2), 8, 12); // @@@ tested expression is evaluated twice
+    TEST_EXPECT_EQUAL(mod.getAndMod(2), 2);
+    TEST_EXPECT_IN_RANGE(mod.getAndMod(33), 1, 3);
+    TEST_EXPECT_EQUAL(mod.getAndMod(33), 33);
+    TEST_EXPECT_IN_RANGE__BROKEN(mod.getAndMod(20), 32, 34); // @@@ tested expression is evaluated twice
+    TEST_EXPECT_EQUAL(mod.getAndMod(20), 20);
+}
+
 enum MyEnum {
     MY_UNKNOWN,
     MY_RNA,

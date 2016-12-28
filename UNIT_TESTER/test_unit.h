@@ -979,6 +979,9 @@ namespace arb_test {
 #define doesnt_contain(val) contradicts(containing(),val)
 
 #define that(thing) CREATE_matchable(MATCHABLE_ARGS_TYPED(thing))
+// Warning: make sure you use 'that(xxx)' only once per macro!
+//          (otherwise unwanted double evaluation takes place; see TEST_EXPECT_EQUAL__BROKEN for howto avoid it)
+
 
 #define TEST_EXPECTATION(EXPCTN) do { using namespace arb_test; asserter(EXPCTN, #EXPCTN, __FILE__, __LINE__).expect_that(); } while(0)
 #define TEST_EXPECTATION__BROKEN_SIMPLE(EXPCTN) do { using namespace arb_test; asserter(EXPCTN, #EXPCTN, __FILE__, __LINE__).expect_broken(); } while(0)
@@ -1200,14 +1203,14 @@ inline arb_test::match_expectation expect_callback(void (*cb)(), bool expect_SEG
 // --------------------------------------------------------------------------------
 
 namespace arb_test {
-    template <typename T>
-    inline void expect_broken(const arb_test::matchable_value<T>& That, const T& want, const T& got) {
+    template <typename T, typename U, typename V>
+    inline void expect_broken(const arb_test::matchable_value<T>& That, const U& want, const V& got) {
         TEST_EXPECTATION__BROKEN(That.is_equal_to(want), That.is_equal_to(got));
     }
 };
 
 #define TEST_EXPECT_EQUAL(expr,want)             TEST_EXPECTATION(that(expr).is_equal_to(want))
-#define TEST_EXPECT_EQUAL__BROKEN(expr,want,got) do { TEST_EXPECTATION__BROKEN(that(expr).is_equal_to(want), that(expr).is_equal_to(got)); } while(0)
+#define TEST_EXPECT_EQUAL__BROKEN(expr,want,got) do{ using namespace arb_test; expect_broken(that(expr), want, got); }while(0)
 #define TEST_EXPECT_EQUAL__IGNARG(expr,want,ign) TEST_EXPECTATION(that(expr).is_equal_to(want))
 
 #define TEST_EXPECT_SIMILAR(expr,want,epsilon)         TEST_EXPECTATION(that(expr).fulfills(epsilon_similar(epsilon), want))
@@ -1216,12 +1219,13 @@ namespace arb_test {
 #define TEST_EXPECT_DIFFERENT(expr,want)         TEST_EXPECTATION(that(expr).does_differ_from(want));
 #define TEST_EXPECT_DIFFERENT__BROKEN(expr,want) TEST_EXPECTATION__BROKEN(that(expr).does_differ_from(want));
 
-#define TEST_EXPECT_LESS(val,ref)              TEST_EXPECTATION(that(val).is_less_than(ref))
-#define TEST_EXPECT_MORE(val,ref)              TEST_EXPECTATION(that(val).is_more_than(ref))
-#define TEST_EXPECT_LESS_EQUAL(val,ref)        TEST_EXPECTATION(that(val).is_less_or_equal(ref))
-#define TEST_EXPECT_MORE_EQUAL(val,ref)        TEST_EXPECTATION(that(val).is_more_or_equal(ref))
-#define TEST_EXPECT_IN_RANGE(val,lower,higher) TEST_EXPECTATION(all().of(that(val).is_more_or_equal(lower),     \
-                                                                         that(val).is_less_or_equal(higher)))
+#define TEST_EXPECT_LESS(val,ref)       TEST_EXPECTATION(that(val).is_less_than(ref))
+#define TEST_EXPECT_MORE(val,ref)       TEST_EXPECTATION(that(val).is_more_than(ref))
+#define TEST_EXPECT_LESS_EQUAL(val,ref) TEST_EXPECTATION(that(val).is_less_or_equal(ref))
+#define TEST_EXPECT_MORE_EQUAL(val,ref) TEST_EXPECTATION(that(val).is_more_or_equal(ref))
+
+#define TEST_EXPECT_IN_RANGE(val,lower,higher)         TEST_EXPECTATION(all().of(that(val).is_more_or_equal(lower), that(val).is_less_or_equal(higher)))
+#define TEST_EXPECT_IN_RANGE__BROKEN(val,lower,higher) TEST_EXPECTATION__BROKEN_SIMPLE(all().of(that(val).is_more_or_equal(lower), that(val).is_less_or_equal(higher)))
 
 #define TEST_EXPECT_CONTAINS(str,part)         TEST_EXPECTATION(that(str).does_contain(part))
 #define TEST_EXPECT_CONTAINS__BROKEN(str,part) TEST_EXPECTATION__BROKEN_SIMPLE(that(str).does_contain(part))
