@@ -25,8 +25,9 @@ DESCRIPTION	All affected 'species' are positioned according to maximum
                 inserted. The other functions always work on all 'marked species'.
 
                 In case of 'Remove & Add Marked Species' any marked species are first
-                removed from the tree and then inserted. The other functions only add
-                those marked species which are not already present in the tree.
+                removed from the tree and then inserted again.
+                The other functions only add those marked species which are not
+                already present in the tree.
 
 
 SECTION         Full length vs partial sequence data
@@ -57,25 +58,34 @@ SECTION         Tree degeneration
 
                 Nevertheless this function has proven useful to determine the
                 phylogenetic position of new/custom sequences in an optimized tree.
-                But you should always be aware that the more sequences you add this way,
-                the worse your topology will get.
+                But you should always be aware that, the more often you add sequences
+                this way, the worser your topology will get.
 
                 Probably you may want to optimize your tree from time
                 to time. See LINK{pa_optimizer.hlp} for howto.
 
 
-SECTION         Insertion order 
+SECTION         Insertion order
 
-                Due to the tree degeneration mentioned above, the insertion
-                order of the species you add to an existing tree is of some
-                importance.
+                Until arb-6.0.x species with more base positions were added before
+                such with less bp.
 
-                This function sorts the species (added in each batch of species) by the number
-                of base positions (bp) remaining after filtering. Species with more bp get
-                inserted before species with less bp - as their position in the tree will be
-                stronger determined.
+                Starting with arb-6.1 all species are added independently, i.e.
+                there is no explicit insertion order (see exception below).
+                The performance has been improved dramatically, especially
+                when adding many species and/or when adding into big trees.
 
-                Note: there is no strict order for species with same amount of bp.
+                If multiple species are added to the same position in the tree,
+                they form a subtree which will be optimized afterwards.
+
+                Exception:
+
+                  If the number of added species exceeds 50% of the size of
+                  the tree (e.g. if adding more than 1000 species to a tree
+                  containing 2000 sp.), the species will be devided into
+                  multiple sets and then these sets will be inserted one after
+                  each other.
+                  Longer sequences will be added earlier in this case.
 
 
 NOTES		The current parsimony value (see LINK{pa_value.hlp}) is

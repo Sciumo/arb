@@ -123,10 +123,6 @@ class AP_tree_nlen : public AP_tree { // derived from a Noncopyable // @@@ renam
     void restore_sequence_nondestructive(const NodeState& state);
     void restore_root(const NodeState& state);
 
-    void buildNodeList_rec(AP_tree_nlen **list, long& num);
-    void buildNodeList(AP_tree_nlen **&list, long &num); // returns a list of inner nodes (w/o root)
-    void buildBranchList_rec(AP_tree_nlen **list, long& num, bool create_terminal_branches, int deep);
-
 protected:
     ~AP_tree_nlen() OVERRIDE { ap_assert(states.empty()); }
     friend void AP_main::destroyNode(AP_tree_nlen *node); // allowed to call dtor
@@ -192,13 +188,13 @@ public:
     void initial_insert(AP_tree *new_brother, AP_tree_root *troot) OVERRIDE { initial_insert(DOWNCAST(AP_tree_nlen*, new_brother), DOWNCAST(AP_pars_root*, troot)); }
     void moveNextTo(AP_tree *node, AP_FLOAT rel_pos) OVERRIDE { moveNextTo(DOWNCAST(AP_tree_nlen*, node), rel_pos); }
 
+    void exchange(AP_tree_nlen *other);
+
     // tree optimization methods:
     void parsimony_rec(char *mutPerSite = NULL);
 
     AP_FLOAT nn_interchange_rec(EdgeSpec whichEdges, AP_BL_MODE mode);
     AP_FLOAT nn_interchange(AP_FLOAT parsimony, AP_BL_MODE mode);
-
-    void buildBranchList(AP_tree_nlen **&list, long &num, bool create_terminal_branches, int deep);
 
     // misc stuff:
 
@@ -311,7 +307,7 @@ public:
 
     // access methods:
 
-    int isConnectedTo(const AP_tree_nlen *n) const              { return node[0]==n || node[1]==n; }
+    bool isConnectedTo(const AP_tree_nlen *n) const             { return node[0]==n || node[1]==n; }
     int indexOf(const AP_tree_nlen *n) const                    { ap_assert(isConnectedTo(n)); return node[1] == n; }
     AP_tree_nlen* otherNode(const AP_tree_nlen *n) const        { return node[1-indexOf(n)]; }
     AP_tree_nlen* sonNode() const                               { return node[0]->get_father() == node[1] ? node[0] : node[1]; }

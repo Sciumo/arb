@@ -93,6 +93,8 @@ struct AP_STACK : public arb_forward_list<ELEM*> {
         return BASE::size();
 #endif
     }
+
+    bool empty() const { return BASE::empty(); }
 };
 
 // ----------------------------------------------------------------

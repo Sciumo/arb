@@ -236,6 +236,8 @@ void NT_create_sai_from_pfold(AW_window *aww, TREE_canvas *ntw) {
 }
 
 void launch_MapViewer_cb(GBDATA *gbd, AD_MAP_VIEWER_TYPE type) {
+    // Note: sync with ../PARSIMONY/PARS_main.cxx@PARS_map_viewer
+
     GB_ERROR error = GB_push_transaction(GLOBAL.gb_main);
 
     if (!error) {
