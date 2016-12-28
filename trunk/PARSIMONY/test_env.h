@@ -1,7 +1,7 @@
 // ================================================================= //
 //                                                                   //
 //   File      : test_env.h                                          //
-//   Purpose   :                                                     //
+//   Purpose   : parsimony unittest toolkit                          //
 //                                                                   //
 //   Coded by Ralf Westram (coder@reallysoft.de) in September 2014   //
 //   http://www.arb-home.de/                                         //
@@ -136,6 +136,19 @@ public:
     void dump2file(const char *name) { apMain.dump2file(name); }
 #endif
 };
+
+// ---------------------------
+//      expected combines
+//
+// Note: if code is compiled with AddressSanitizer, the number of performed combines differs (at some places).
+// I have no idea why that happens and since the other test-results show no effect, strange behavior is tolerated.
+#if defined(LEAKS_SANITIZED)
+# define TEST_EXPECT_COMBINES_PERFORMED_DIFFERS_IF_SANITIZED(env,expComb,expCombSanitize) TEST_EXPECT_EQUAL__BROKEN((env).combines_performed(), expComb, expCombSanitize)
+#else // !LEAKS_SANITIZED
+# define TEST_EXPECT_COMBINES_PERFORMED_DIFFERS_IF_SANITIZED(env,expComb,expCombSanitize) TEST_EXPECT_EQUAL((env).combines_performed(), expComb)
+#endif
+# define TEST_EXPECT_COMBINES_PERFORMED(env,expComb) TEST_EXPECT_EQUAL((env).combines_performed(), expComb)
+
 
 #else
 #error test_env.h included twice

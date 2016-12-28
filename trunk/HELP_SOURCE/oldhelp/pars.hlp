@@ -16,8 +16,7 @@ TITLE		Starting ARB Parsimony
 
 OCCURRENCE	ARB_NT/Tree/Add species to existing tree/Parsimony ...
 
-DESCRIPTION	In this release, 'ARB Parsimony' cannot be used to reconstruct
-		new trees.
+DESCRIPTION	ARB Parsimony cannot be used to completely reconstruct new trees.
 
 		Existing trees can be optimized at different levels (depths)
 		according to maximum parsimony criteria.
@@ -26,6 +25,10 @@ DESCRIPTION	In this release, 'ARB Parsimony' cannot be used to reconstruct
 		tree. This can be done without changing that tree or allowing
 		optimization at different levels according to maximum parsimony
 		criteria including the new information for calculation.
+
+                    The different ways to add species are explained in LINK{pa_quick.hlp}.
+                    Standard 'quick add' is available in this menu. To customize behavior
+                    or to optimize trees you have to start ARB parsimony in interactive mode.
 
 		Filters for the in- or exclusion of alignment columns
 		('ARB_NT/SAI; ARB_NT/Tree/Dist Matrix) can be selected.

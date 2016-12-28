@@ -37,6 +37,7 @@
 #include <TreeCallbacks.hxx>
 
 #include <list>
+#include <map>
 #include <macros.hxx>
 #include <awt_config_manager.hxx>
 
@@ -212,124 +213,253 @@ static long transform_gbd_to_leaf(const char *key, long val, void *) {
     return (long)leaf;
 }
 
-static AP_tree_nlen *insert_species_in_tree(AP_tree_nlen *leaf, InsertData *isits) {
-    if (!leaf) return leaf;
-    if (isits->aborted()) return leaf;
+typedef AP_STACK<AP_tree_nlen> InsertedStack;
 
-    ap_assert(leaf->get_seq()->weighted_base_count() >= MIN_SEQUENCE_LENGTH);
+static long toStack(const char *, long val, void *cd_toInsert) {
+    InsertedStack *toInsert = (InsertedStack*)cd_toInsert;
+    AP_tree_nlen  *node     = (AP_tree_nlen*)val;
 
-    AP_tree_nlen *tree = rootNode();
-    if (!tree) {                                   // no tree yet
-        static AP_tree_nlen *last_inserted = NULL; // @@@ move 'last_inserted' into 'InsertData'
+    toInsert->push(node);
+    return (long)NULL;
+}
 
-        if (!last_inserted) {                       // store 1st leaf
-            last_inserted = leaf;
+inline int maxAllowedInsertions(int inTree) {
+    // max. species allowed to insert (in one pass) into a tree with 'inTree' leafs
+    return inTree/2;
+}
+inline int calcInsertNow(int toInsert, int inTree) {
+    // calculate number of species added in next pass
+    return std::min(toInsert, maxAllowedInsertions(inTree));
+}
+
+static int calc_steps(int toInsert, int inTree) {
+    ap_assert((toInsert+inTree) >= 2);
+
+    if (!toInsert) return 0;
+    if (!inTree) return 1 + calc_steps(toInsert-2, 2);
+
+    int edges     = leafs_2_edges(inTree, UNROOTED);
+    int insertNow = calcInsertNow(toInsert, inTree);
+
+    return (edges+1)*insertNow + calc_steps(toInsert-insertNow, inTree+insertNow); // +1 for final step (=actual insertion of species)
+}
+
+struct BestEdge {
+    AP_tree_edge *edge;
+    AP_FLOAT      pars;
+
+    BestEdge() : edge(NULL), pars(-1) {}
+    BestEdge(AP_tree_edge *e, AP_FLOAT p) : edge(e), pars(p) {}
+};
+
+static void insert_species_from_stack_into_tree(InsertedStack& speciesToInsert, arb_progress& progress) {
+    typedef map<AP_tree_nlen*, BestEdge> BestEdge4Node;
+    BestEdge4Node bestpos;
+
+    ap_assert(!speciesToInsert.empty());
+
+    {
+        ap_main->remember();
+
+        EdgeChain chain(rootEdge(), ANY_EDGE, false);
+        ap_assert(chain.size()>0);
+
+        AP_tree_edge *edge = *chain; ++chain;
+        edge->set_root();
+
+        InsertedStack tested;
+        AP_tree_nlen  *species = speciesToInsert.pop();
+
+        species->insert(edge->sonNode()); // edge is root-edge -> son does not matter
+        species->set_root(); // => only needs one combine when exchanging species
+
+        while (1) {
+            AP_FLOAT pars = rootNode()->costs();
+            BestEdge4Node::iterator found = bestpos.find(species);
+            if (found == bestpos.end() || pars<found->second.pars) {
+                bestpos[species] = BestEdge(edge, pars);
+            }
+            ++progress;
+
+            while (!speciesToInsert.empty()) {
+                AP_tree_nlen *prevSpecies = species;
+                species                   = speciesToInsert.pop();
+
+                prevSpecies->exchange(species);
+                tested.push(prevSpecies);
+
+                pars  = rootNode()->costs();
+                found = bestpos.find(species);
+                if (found == bestpos.end() || pars<found->second.pars) {
+                    bestpos[species] = BestEdge(edge, pars);
+                }
+                ++progress;
+            }
+
+            std::swap(speciesToInsert, tested);
+            if (!chain) {
+                speciesToInsert.push(species);
+                break;
+            }
+
+            edge = *chain; ++chain;
+            edge->set_root();
+
+            species->moveNextTo(edge->sonNode(), 0.5);
+            species->set_root();
         }
-        else {                                      // 2nd leaf -> create initial tree
-            AP_pars_root *troot = ap_main->get_tree_root();
 
-            leaf->initial_insert(last_inserted, troot);
-            last_inserted = NULL;
+        ap_main->revert();
+    }
 
-            ap_assert(troot->get_root_node() == leaf->get_father());
-            ASSERT_VALID_TREE(troot->get_root_node());
+    // insert species to best found position
+
+    typedef list<AP_tree_nlen*> NodeList;
+    typedef map<AP_tree_edge*, NodeList> NodesAtEdge;
+
+    NodesAtEdge atEdge;
+    for (InsertedStack::iterator s = speciesToInsert.begin(); s != speciesToInsert.end(); ++s) { // @@@ iterate over bestpos
+        const BestEdge&       best = bestpos[*s];
+        NodesAtEdge::iterator at   = atEdge.find(best.edge);
+        if (at == atEdge.end()) {
+            atEdge[best.edge] = NodeList(1, *s);
+        }
+        else {
+            at->second.push_back(*s);
         }
     }
-    else {
-        ASSERT_VALID_TREE(tree);
 
-        AP_tree_nlen **branchlist;
-        {
-            long bsum = 0;
-            tree->buildBranchList(branchlist, bsum, true, -1); // get all branches
+#if defined(DEVEL_RALF)
+    // testcode: test whether all found edges are members of the tree
+    // (got some problem with insert/REMOVE while root is next to inserted/removed node)
+
+    set<AP_tree_edge*> edgeInTree;
+    {
+        EdgeChain chain(rootEdge(), ANY_EDGE, false);
+        while (chain) {
+            AP_tree_edge *edge = *chain; ++chain;
+            edgeInTree.insert(edge);
         }
 
-        AP_tree_nlen *bestposl = tree->get_leftson();
-        AP_tree_nlen *bestposr = tree->get_rightson();
+        for (BestEdge4Node::iterator b = bestpos.begin(); b != bestpos.end(); ++b) {
+            AP_tree_edge *e = b->second.edge;
 
-        ap_assert(tree == rootNode());
-        leaf->insert(bestposl);
-        tree = NULL;                                // tree may have changed
+            if (edgeInTree.find(e) == edgeInTree.end()) {
+                GBK_terminate("remembered edge has been removed from tree");
+            }
+        }
+    }
+#endif
 
-        bool final_move = false;
-        {
-            AP_FLOAT curr_parsimony = rootNode()->costs();
-            AP_FLOAT best_parsimony = curr_parsimony;
+    for (NodesAtEdge::iterator e = atEdge.begin(); e != atEdge.end(); ++e) {
+        AP_tree_edge *edge  = e->first;
+        NodeList&     nodes = e->second;
+
+        // edge->set_root(); // @@@ test
+
+        AP_tree_nlen *brother    = edge->sonNode();
+        size_t        nodes_size = nodes.size();
+
+        if (nodes_size == 1) {
+            nodes.front()->insert(brother);
+
+            ASSERT_VALID_TREE(rootNode());
+        }
+        else {
+            AP_tree_nlen *at = brother;
+
+            for (NodeList::iterator n = nodes.begin(); n != nodes.end(); ++n) {
+                (*n)->insert(at);
+                at = *n;
+            }
 
             ASSERT_VALID_TREE(rootNode());
 
-            for (long counter = 0; !isits->aborted() && branchlist[counter]; counter += 2) {
-                AP_tree_nlen *bl  = branchlist[counter];
-                AP_tree_nlen *blf = branchlist[counter+1];
+            // all species added at the current target edge now form a subtree which is the brother of 'brother'!
 
-                if (blf->father == bl) {
-                    bl  = branchlist[counter+1];
-                    blf = branchlist[counter];
-                }
+            AP_FLOAT prev_pars = rootNode()->costs();
 
-                ASSERT_VALID_TREE(rootNode());
-                if (bl->father) {
-                    bl->set_root();
-                }
-                ASSERT_VALID_TREE(rootNode());
+            AP_tree_nlen *ourFather = brother->get_father();
+            AP_tree_edge *subEdge   = ourFather->edgeTo(brother->get_brother());
 
-                leaf->moveNextTo(bl, 0.5);
-                ASSERT_VALID_TREE(rootNode());
-
-                curr_parsimony = rootNode()->costs();
-                ASSERT_VALID_TREE(rootNode());
-
-                if (curr_parsimony < best_parsimony) {
-                    best_parsimony = curr_parsimony;
-                    bestposl = bl;
-                    bestposr = blf;
-                    final_move = false;
-                }
-                else {
-                    final_move = true;
-                }
+            // nni-optimize newly inserted subtree
+            arb_suppress_progress suppress_child; // suppress implicit progress count caused by nni_rec
+            while (1) {
+                AP_FLOAT this_pars = subEdge->nni_rec(SKIP_LEAF_EDGES, AP_BL_NNI_ONLY, ourFather, false);
+                if (this_pars == prev_pars) break;
+                prev_pars          = this_pars;
             }
         }
-        delete [] branchlist; branchlist = 0;
-
-        ASSERT_VALID_TREE(rootNode());
-
-        if (final_move) {
-            if (bestposr->father == bestposl) std::swap(bestposr, bestposl);
-            if (leaf->father != bestposl->father) {
-                leaf->moveNextTo(bestposl, 0.5);
-            }
-        }
-
-        ASSERT_VALID_TREE(rootNode());
-
-        // @@@ section below should better be handled using "partial species"
-        AP_tree_nlen *brother = leaf->get_brother();
-        if (brother->is_leaf && leaf->father->father) {
-            bool brother_is_short = 2 * brother->get_seq()->weighted_base_count() < leaf->get_seq()->weighted_base_count();
-
-            if (brother_is_short) {
-                brother->REMOVE();
-                leaf->REMOVE();
-
-                for (int firstUse = 1; firstUse >= 0; --firstUse) {
-                    AP_tree_nlen *to_insert = firstUse ? leaf : brother;
-                    insert_species_in_tree(to_insert, isits);
-                }
-            }
-        }
-
-        ASSERT_VALID_TREE(rootNode());
+        progress.inc_by(nodes_size);
     }
-
-    return leaf;
 }
 
-static long hash_insert_species_in_tree(const char *, long leaf, void *cd_isits) {
-    InsertData *isits  = (InsertData*)cd_isits;
-    long        result = (long)insert_species_in_tree((AP_tree_nlen*)leaf, isits);
-    isits->inc();
-    return result;
+static void insert_all_species_into_tree(GB_HASH*& hash) {
+    // inserts all species (from hash) into tree
+
+    AP_tree_nlen *tree = rootNode();
+
+    int inTree   = tree ? tree->count_leafs() : 0;
+    int toInsert = GBS_hash_elements(hash);
+
+    ap_assert(toInsert);
+
+    int steps = calc_steps(toInsert, inTree);
+
+    arb_progress progress(steps);
+
+    // move species to insert to a stack
+    InsertedStack speciesToInsert;
+    if (maxAllowedInsertions(inTree)<toInsert) {
+        // insert longest sequences first
+        GBS_hash_do_sorted_loop(hash, toStack, sort_sequences_by_length, &speciesToInsert);
+    }
+    else {
+        // insert all sequences (order should not matter)
+        GBS_hash_do_loop(hash, toStack, &speciesToInsert);
+    }
+    GBS_free_hash(hash);
+    hash = NULL;
+
+    ap_assert(toInsert != 2); // @@@ need to test this case
+
+    AP_tree_edge *oldRootEdge = NULL;
+    if (!tree) { // create initial tree
+        AP_pars_root *troot = ap_main->get_tree_root();
+        speciesToInsert.pop()->initial_insert(speciesToInsert.pop(), troot);
+
+        inTree    = 2;
+        toInsert -= 2;
+
+        ++progress;
+    }
+    else {
+        oldRootEdge = rootEdge();
+    }
+
+    ASSERT_VALID_TREE(rootNode());
+
+    while (1) {
+        int insertNow = calcInsertNow(toInsert, inTree);
+        ap_assert(insertNow<=toInsert);
+        if (insertNow == toInsert) break;
+
+        InsertedStack speciesAddedNow;
+        for (int c = 0; c<insertNow; ++c) {
+            speciesAddedNow.push(speciesToInsert.pop());
+        }
+        insert_species_from_stack_into_tree(speciesAddedNow, progress);
+
+        toInsert -= insertNow;
+        inTree   += insertNow;
+    }
+
+    insert_species_from_stack_into_tree(speciesToInsert, progress);
+
+    if (oldRootEdge) {
+        // set root back to old position
+        oldRootEdge->set_root();
+    }
 }
 
 enum AddWhat {
@@ -388,7 +518,6 @@ static void nt_add(AWT_graphic_parsimony *agt, AddWhat what, bool quick) {
         InsertPerfMeter insertPerf("(quick-)add", species_count);
 
         {
-            InsertData isits(quick, species_count);
             {
                 GB_transaction ta(gb_main);
                 GBS_hash_do_loop(hash, transform_gbd_to_leaf, NULL);
@@ -397,10 +526,14 @@ static void nt_add(AWT_graphic_parsimony *agt, AddWhat what, bool quick) {
                 size_t skipped = species_count - GBS_hash_elements(hash);
                 if (skipped) {
                     GBT_message(gb_main, GBS_global_string("Skipped %zu species (no data?)", skipped));
-                    isits.get_progress().inc_by(skipped);
                 }
             }
-            GBS_hash_do_sorted_loop(hash, hash_insert_species_in_tree, sort_sequences_by_length, &isits);
+            if (GBS_hash_elements(hash)) {
+                insert_all_species_into_tree(hash);
+            }
+            else {
+                GBT_message(gb_main, "No species (left) to insert");
+            }
         }
 
         if (rootNode()) {
@@ -1692,7 +1825,12 @@ static void pars_create_all_awars(AW_root *awr, AW_default aw_def, GBDATA *gb_ma
 static AW_root *AD_map_viewer_aw_root = 0;
 
 void PARS_map_viewer(GBDATA *gb_species, AD_MAP_VIEWER_TYPE vtype) {
-    if (vtype == ADMVT_SELECT && AD_map_viewer_aw_root && gb_species) {
+    // Note: sync with ../NTREE/ad_spec.cxx@launch_MapViewer_cb
+
+    if (AD_map_viewer_aw_root &&
+        gb_species            &&
+        (vtype == ADMVT_SELECT || vtype == ADMVT_INFO))
+    {
         AD_map_viewer_aw_root->awar(AWAR_SPECIES_NAME)->write_string(GBT_read_name(gb_species));
     }
 }
@@ -2089,9 +2227,9 @@ void TEST_nucl_tree_modifications() {
     TEST_EXPECT_SAVED_TOPOLOGY(env, "nucl-initial");
 
     const int PARSIMONY_ORG = 301;
-    TEST_EXPECT_EQUAL(env.combines_performed(), 0);
+    TEST_EXPECT_COMBINES_PERFORMED(env, 0);
     TEST_EXPECT_PARSVAL(env, PARSIMONY_ORG);
-    TEST_EXPECT_EQUAL(env.combines_performed(), 14);
+    TEST_EXPECT_COMBINES_PERFORMED(env, 14);
 
     // [NUCOPTI] opposed to protein tests below the initial tree here is NOT optimized! compare .@PROTOPTI
     // -> removing and adding species produces a better tree
@@ -2101,13 +2239,13 @@ void TEST_nucl_tree_modifications() {
     // diff initial->add-NNI:   http://bugs.arb-home.de/changeset/HEAD/branches/pars/UNIT_TESTER/run/pars/nucl-add-NNI.tree.expected?old=HEAD&old_path=branches%2Fpars%2FUNIT_TESTER%2Frun%2Fpars%2Fnucl-initial.tree.expected
 
     TEST_EXPECTATION(modifyingTopoResultsIn(MOD_REMOVE_MARKED, "nucl-removed",   PARSIMONY_ORG-93, env, true)); // test remove-marked only (same code as part of nt_reAdd)
-    TEST_EXPECT_EQUAL(env.combines_performed(), 3);
+    TEST_EXPECT_COMBINES_PERFORMED(env, 3);
 
-    TEST_EXPECTATION(modifyingTopoResultsIn(MOD_QUICK_READD,     "nucl-add-quick", PARSIMONY_ORG-23, env, true)); // test quick-add
-    TEST_EXPECT_EQUAL(env.combines_performed(), 562);
+    TEST_EXPECTATION(modifyingTopoResultsIn(MOD_QUICK_READD,   "nucl-add-quick", PARSIMONY_ORG-15, env, true)); // test quick-add
+    TEST_EXPECT_COMBINES_PERFORMED_DIFFERS_IF_SANITIZED(env, 341, 343);
 
-    TEST_EXPECTATION(modifyingTopoResultsIn(MOD_READD_NNI,       "nucl-add-NNI",   PARSIMONY_ORG-25, env, true)); // test add + NNI
-    TEST_EXPECT_EQUAL(env.combines_performed(), 718);
+    TEST_EXPECTATION(modifyingTopoResultsIn(MOD_READD_NNI,     "nucl-add-NNI",   PARSIMONY_ORG-20, env, true)); // test add + NNI
+    TEST_EXPECT_COMBINES_PERFORMED_DIFFERS_IF_SANITIZED(env, 446, 448);
 
     // test partial-add
     {
@@ -2128,16 +2266,16 @@ void TEST_nucl_tree_modifications() {
             // CloButyr and CloButy2 do not differ in seq-range of partial -> any of both may be chosen as brother.
             // behavior should be changed with #605
             TEST_EXPECTATION(addingPartialResultsIn(CloButyP, "CloButyr;CloButy2", "nucl-addPart-CloButyP", PARSIMONY_ORG, env));
-            TEST_EXPECT_EQUAL(env.combines_performed(), 6);
+            TEST_EXPECT_COMBINES_PERFORMED(env, 6);
             env.pop();
         }
 
         {
             env.push();
             TEST_EXPECTATION(addingPartialResultsIn(CorGlutP, "CorGluta",          "nucl-addPart-CorGlutP",          PARSIMONY_ORG, env)); // add CorGlutP
-            TEST_EXPECT_EQUAL(env.combines_performed(), 5); // @@@ partial-add should not perform combines at all
+            TEST_EXPECT_COMBINES_PERFORMED(env, 5); // @@@ partial-add should not perform combines at all
             TEST_EXPECTATION(addingPartialResultsIn(CloButyP, "CloButyr;CloButy2", "nucl-addPart-CorGlutP-CloButyP", PARSIMONY_ORG, env)); // also add CloButyP
-            TEST_EXPECT_EQUAL(env.combines_performed(), 6);
+            TEST_EXPECT_COMBINES_PERFORMED(env, 6);
             env.pop();
         }
 
@@ -2153,21 +2291,21 @@ void TEST_nucl_tree_modifications() {
             }
 
             TEST_EXPECTATION(modifyingTopoResultsIn(MOD_QUICK_READD, "nucl-addPartialAsFull-CorGlutP", PARSIMONY_ORG, env, false));
-            TEST_EXPECT_EQUAL(env.combines_performed(), 228);
+            TEST_EXPECT_COMBINES_PERFORMED(env, 226);
             TEST_EXPECT_EQUAL(is_partial(CorGlutP), 0); // check CorGlutP was added as full sequence
             TEST_EXPECTATION(addedAsBrotherOf("CorGlutP", "CorGluta", env)); // partial created from CorGluta gets inserted next to CorGluta
 
             // add CloButyP as partial.
             // as expected it is placed next to matching full sequences (does not differ in partial range)
             TEST_EXPECTATION(addingPartialResultsIn(CloButyP, "CloButyr;CloButy2", NULL, PARSIMONY_ORG, env));
-            TEST_EXPECT_EQUAL(env.combines_performed(), 6);
+            TEST_EXPECT_COMBINES_PERFORMED(env, 6);
 
             // CloButyM differs slightly in overlap with CloButyr/CloButy2, but has no overlap with CorGlutP
             // shows bug described in #609 is fixed:
             TEST_EXPECTATION(addingPartialResultsIn(CloButyM, "CloButyP", "nucl-addPart-bug609",
                                                     PARSIMONY_ORG+1, // @@@ known bug - partial should not affect parsimony value; possibly related to ../HELP_SOURCE/oldhelp/pa_partial.hlp@WARNINGS 
                                                     env));
-            TEST_EXPECT_EQUAL(env.combines_performed(), 7);
+            TEST_EXPECT_COMBINES_PERFORMED(env, 7);
             env.pop();
         }
     }
@@ -2183,7 +2321,7 @@ void TEST_nucl_tree_modifications() {
     {
         env.push();
         TEST_EXPECTATION(movingRootDoesntAffectCosts(PARSIMONY_ORG));
-        TEST_EXPECT_EQUAL(env.combines_performed(), 342);
+        TEST_EXPECT_COMBINES_PERFORMED(env, 342);
         env.pop();
     }
 
@@ -2198,12 +2336,12 @@ void TEST_nucl_tree_modifications() {
     }
 
     TEST_EXPECT_PARSVAL(env, PARSIMONY_ORG);
-    TEST_EXPECT_EQUAL(env.combines_performed(), 0);
+    TEST_EXPECT_COMBINES_PERFORMED(env, 0);
 
     // test branchlength calculation
     // (optimizations below implicitely recalculates branchlengths)
     TEST_EXPECTATION(modifyingTopoResultsIn(MOD_CALC_LENS, "nucl-calclength", PARSIMONY_ORG, env, false));
-    TEST_EXPECT_EQUAL(env.combines_performed(), 120);
+    TEST_EXPECT_COMBINES_PERFORMED(env, 120);
 
     // test whether branchlength calculation depends on root-position
     {
@@ -2227,29 +2365,29 @@ void TEST_nucl_tree_modifications() {
 
             TEST_EXPECT_SAVED_TOPOLOGY(env, "nucl-calclength");
         }
-        TEST_EXPECT_EQUAL(env.combines_performed(), 517);
+        TEST_EXPECT_COMBINES_PERFORMED(env, 517);
 
         env.pop();
     }
 
     // test optimize (some)
     TEST_EXPECTATION(modifyingTopoResultsIn(MOD_OPTI_NNI, "nucl-opti-NNI", PARSIMONY_NNI_MARKED, env, true)); // test recursive NNI
-    TEST_EXPECT_EQUAL(env.combines_performed(), 208);
+    TEST_EXPECT_COMBINES_PERFORMED(env, 208);
 
     TEST_EXPECTATION(modifyingTopoResultsIn(MOD_OPTI_GLOBAL, "nucl-opti-marked-global", PARSIMONY_OPTI_MARKED, env, true)); // test recursive NNI+KL
-    TEST_EXPECT_EQUAL(env.combines_performed(), 18518);
+    TEST_EXPECT_COMBINES_PERFORMED(env, 18518);
 
     {
         KL_Settings& KL = env.get_KL_settings();
         LocallyModify<EdgeSpec> target(KL.whichEdges, EdgeSpec(KL.whichEdges&~SKIP_UNMARKED_EDGES)); // ignore marks; skip folded
 
         TEST_EXPECTATION(modifyingTopoResultsIn(MOD_OPTI_GLOBAL, "nucl-opti-visible-global", PARSIMONY_OPTI_VISIBLE, env, true)); // same result as if all species marked (see below)
-        TEST_EXPECT_EQUAL(env.combines_performed(), 34925);
+        TEST_EXPECT_COMBINES_PERFORMED(env, 34925);
 
         KL.whichEdges = EdgeSpec(KL.whichEdges&~SKIP_FOLDED_EDGES); // ignore marks and folding
 
         TEST_EXPECTATION(modifyingTopoResultsIn(MOD_OPTI_GLOBAL, "nucl-opti-global", PARSIMONY_OPTI_ALL, env, true)); // same result as if all species marked and all groups unfolded (see below)
-        TEST_EXPECT_EQUAL(env.combines_performed(), 124811);
+        TEST_EXPECT_COMBINES_PERFORMED(env, 124811);
     }
 
     // -----------------------------
@@ -2269,23 +2407,23 @@ void TEST_nucl_tree_modifications() {
     TEST_EXPECT_EQUAL(GBT_count_marked_species(env.gbmain()), 15);
 
     TEST_EXPECT_PARSVAL(env, PARSIMONY_ORG);
-    TEST_EXPECT_EQUAL(env.combines_performed(), 0);
+    TEST_EXPECT_COMBINES_PERFORMED(env, 0);
 
     // test branchlength calculation
     // (optimizations below implicitely recalculates branchlengths)
     TEST_EXPECTATION(modifyingTopoResultsIn(MOD_CALC_LENS, "nucl-calclength", PARSIMONY_ORG, env, false));
-    TEST_EXPECT_EQUAL(env.combines_performed(), 120);
+    TEST_EXPECT_COMBINES_PERFORMED(env, 120);
 
     TEST_EXPECTATION(modifyingTopoResultsIn(MOD_OPTI_NNI, "nucl-opti-all-NNI", PARSIMONY_NNI_ALL, env, true)); // test recursive NNI
-    TEST_EXPECT_EQUAL(env.combines_performed(), 242);
+    TEST_EXPECT_COMBINES_PERFORMED(env, 242);
 
     {
         env.push();
         TEST_EXPECTATION(modifyingTopoResultsIn(MOD_OPTI_GLOBAL, "nucl-opti-visible-global", PARSIMONY_OPTI_VISIBLE, env, false)); // test recursive NNI+KL
-        TEST_EXPECT_EQUAL(env.combines_performed(), 34925);
+        TEST_EXPECT_COMBINES_PERFORMED(env, 34925);
 
         TEST_EXPECTATION(movingRootDoesntAffectCosts(PARSIMONY_OPTI_VISIBLE));
-        TEST_EXPECT_EQUAL(env.combines_performed(), 336);
+        TEST_EXPECT_COMBINES_PERFORMED(env, 336);
         env.pop();
     }
 
@@ -2297,16 +2435,16 @@ void TEST_nucl_tree_modifications() {
         group->gr.grouped      = false; // unfold the only folded group
 
         TEST_EXPECTATION(modifyingTopoResultsIn(MOD_OPTI_GLOBAL, "nucl-opti-global", PARSIMONY_OPTI_ALL, env, true)); // test recursive NNI+KL
-        TEST_EXPECT_EQUAL(env.combines_performed(), 124811);
+        TEST_EXPECT_COMBINES_PERFORMED(env, 124811);
     }
 
     // test re-add all (i.e. test "create tree from scratch")
     // Note: trees generated below are NO LONGER better than optimized trees! (see also r13651)
-    TEST_EXPECTATION(modifyingTopoResultsIn(MOD_QUICK_READD,     "nucl-readdall-quick", PARSIMONY_ORG-23, env, true)); // quick
-    TEST_EXPECT_EQUAL(env.combines_performed(), 751);
+    TEST_EXPECTATION(modifyingTopoResultsIn(MOD_QUICK_READD,     "nucl-readdall-quick", PARSIMONY_ORG-31, env, true)); // quick
+    TEST_EXPECT_COMBINES_PERFORMED(env, 472);
 
-    TEST_EXPECTATION(modifyingTopoResultsIn(MOD_READD_NNI,       "nucl-readdall-NNI",   PARSIMONY_ORG-27, env, true)); // + NNI
-    TEST_EXPECT_EQUAL(env.combines_performed(), 926);
+    TEST_EXPECTATION(modifyingTopoResultsIn(MOD_READD_NNI,       "nucl-readdall-NNI",   PARSIMONY_ORG-35, env, true)); // + NNI
+    TEST_EXPECT_COMBINES_PERFORMED(env, 643);
 
     // test adding a too short sequence
     // (has to be last test, because it modifies seq data)                    << ------------ !!!!!
@@ -2339,7 +2477,7 @@ void TEST_nucl_tree_modifications() {
 
         // remove CloTyrob
         TEST_EXPECTATION(modifyingTopoResultsIn(MOD_REMOVE_MARKED, NULL, PARSIMONY_ORG-1, env, false));
-        TEST_EXPECT_EQUAL(env.combines_performed(), 4);
+        TEST_EXPECT_COMBINES_PERFORMED(env, 4);
         TEST_EXPECT_EQUAL(env.root_node()->count_leafs(), 14);
 
         // attempt to add CloTyrob (should fail because sequence too short) and CorGluta (should stay, because already in tree)
@@ -2351,7 +2489,7 @@ void TEST_nucl_tree_modifications() {
         }
 
         TEST_EXPECTATION(modifyingTopoResultsIn(MOD_QUICK_ADD, NULL, PARSIMONY_ORG-1, env, false));
-        TEST_EXPECT_EQUAL(env.combines_performed(), 110); // @@@ why does this perform combines at all?
+        TEST_EXPECT_COMBINES_PERFORMED(env, 110); // @@@ why does this perform combines at all?
         TEST_EXPECT_EQUAL(env.root_node()->count_leafs(), 14); // ok, CloTyrob was not added
         TEST_REJECT_NULL(env.root_node()->findLeafNamed("CorGluta")); // has to be in tree
 
@@ -2368,7 +2506,7 @@ void TEST_prot_tree_modifications() {
 
     const int PARSIMONY_ORG = 1081;
     TEST_EXPECT_PARSVAL(env, PARSIMONY_ORG);
-    TEST_EXPECT_EQUAL(env.combines_performed(), 10);
+    TEST_EXPECT_COMBINES_PERFORMED(env, 10);
 
     // [PROTOPTI] opposed to nucleid tests above the initial tree here is already optimized! compare .@NUCOPTI
     // -> adding species approximately reproduces initial topology
@@ -2379,13 +2517,13 @@ void TEST_prot_tree_modifications() {
     // Note: comparing these two diffs also demonstrates why quick-adding w/o NNI suffers
 
     TEST_EXPECTATION(modifyingTopoResultsIn(MOD_REMOVE_MARKED, "prot-removed",   PARSIMONY_ORG-146, env, true)); // test remove-marked only (same code as part of nt_reAdd)
-    TEST_EXPECT_EQUAL(env.combines_performed(), 5);
+    TEST_EXPECT_COMBINES_PERFORMED(env, 5);
 
     TEST_EXPECTATION(modifyingTopoResultsIn(MOD_QUICK_READD,     "prot-add-quick", PARSIMONY_ORG,     env, true)); // test quick-add
-    TEST_EXPECT_EQUAL(env.combines_performed(), 286);
+    TEST_EXPECT_COMBINES_PERFORMED(env, 207);
 
     TEST_EXPECTATION(modifyingTopoResultsIn(MOD_READD_NNI,       "prot-add-NNI",   PARSIMONY_ORG,     env, true)); // test add + NNI
-    TEST_EXPECT_EQUAL(env.combines_performed(), 336);
+    TEST_EXPECT_COMBINES_PERFORMED(env, 256);
 
     // test partial-add
     {
@@ -2403,16 +2541,16 @@ void TEST_prot_tree_modifications() {
             // StrCoel9 and StrRamo3 do not differ in seq-range of partial -> any of both may be chosen as brother.
             // behavior should be changed with #605
             TEST_EXPECTATION(addingPartialResultsIn(StrCoelP, "StrCoel9;StrRamo3", "prot-addPart-StrCoelP", PARSIMONY_ORG,     env));
-            TEST_EXPECT_EQUAL(env.combines_performed(), 4);
+            TEST_EXPECT_COMBINES_PERFORMED(env, 4);
             env.pop();
         }
 
         {
             env.push();
             TEST_EXPECTATION(addingPartialResultsIn(MucRaceP, "MucRacem",          "prot-addPart-MucRaceP",          PARSIMONY_ORG,    env)); // add MucRaceP
-            TEST_EXPECT_EQUAL(env.combines_performed(), 6);
+            TEST_EXPECT_COMBINES_PERFORMED(env, 6);
             TEST_EXPECTATION(addingPartialResultsIn(StrCoelP, "StrCoel9;StrRamo3", "prot-addPart-MucRaceP-StrCoelP", PARSIMONY_ORG,    env)); // also add StrCoelP
-            TEST_EXPECT_EQUAL(env.combines_performed(), 4);
+            TEST_EXPECT_COMBINES_PERFORMED(env, 4);
             env.pop();
         }
 
@@ -2428,7 +2566,7 @@ void TEST_prot_tree_modifications() {
             }
 
             TEST_EXPECTATION(modifyingTopoResultsIn(MOD_QUICK_READD, "prot-addPartialAsFull-MucRaceP", PARSIMONY_ORG,   env, false));
-            TEST_EXPECT_EQUAL(env.combines_performed(), 158);
+            TEST_EXPECT_COMBINES_PERFORMED(env, 154);
             TEST_EXPECT_EQUAL(is_partial(MucRaceP), 0); // check MucRaceP was added as full sequence
             TEST_EXPECTATION(addedAsBrotherOf("MucRaceP", "Eukarya EF-Tu", env)); // partial created from MucRacem gets inserted next to this group
             // Note: looks ok. group contains MucRacem, AbdGlauc and 4 other species
@@ -2436,14 +2574,14 @@ void TEST_prot_tree_modifications() {
             // add StrCoelP as partial.
             // as expected it is placed next to matching full sequences (does not differ in partial range)
             TEST_EXPECTATION(addingPartialResultsIn(StrCoelP, "StrCoel9;StrRamo3", NULL, PARSIMONY_ORG, env));
-            TEST_EXPECT_EQUAL(env.combines_performed(), 3);
+            TEST_EXPECT_COMBINES_PERFORMED(env, 4);
 
             // StrCoelM differs slightly in overlap with StrCoel9/StrRamo3, but has no overlap with MucRaceP
             // shows bug described in #609 is fixed:
             TEST_EXPECTATION(addingPartialResultsIn(StrCoelM, "StrCoelP", "prot-addPart-bug609",
                                                     PARSIMONY_ORG+1,  // @@@ known bug - partial should not affect parsimony value; possibly related to ../HELP_SOURCE/oldhelp/pa_partial.hlp@WARNINGS
                                                     env));
-            TEST_EXPECT_EQUAL(env.combines_performed(), 4);
+            TEST_EXPECT_COMBINES_PERFORMED(env, 5);
             env.pop();
         }
     }
@@ -2463,12 +2601,12 @@ void TEST_prot_tree_modifications() {
 
     GB_random_seed(mixseed);
     TEST_EXPECTATION(modifyingTopoResultsIn(MOD_MIX_TREE, "prot-mixed", PARSIMONY_MIXED, env, false));
-    TEST_EXPECT_EQUAL(env.combines_performed(), 90);
+    TEST_EXPECT_COMBINES_PERFORMED(env, 90);
 
     {
         env.push();
         TEST_EXPECTATION(movingRootDoesntAffectCosts(PARSIMONY_MIXED));
-        TEST_EXPECT_EQUAL(env.combines_performed(), 232);
+        TEST_EXPECT_COMBINES_PERFORMED(env, 232);
         env.pop();
     }
 
@@ -2484,12 +2622,12 @@ void TEST_prot_tree_modifications() {
     }
 
     TEST_EXPECT_PARSVAL(env, PARSIMONY_MIXED);
-    TEST_EXPECT_EQUAL(env.combines_performed(), 0);
+    TEST_EXPECT_COMBINES_PERFORMED(env, 0);
 
     // test branchlength calculation
     // (optimizations below implicitely recalculates branchlengths)
     TEST_EXPECTATION(modifyingTopoResultsIn(MOD_CALC_LENS, "prot-calclength", PARSIMONY_MIXED, env, false));
-    TEST_EXPECT_EQUAL(env.combines_performed(), 80);
+    TEST_EXPECT_COMBINES_PERFORMED(env, 80);
 
     // test whether branchlength calculation depends on root-position
     {
@@ -2514,16 +2652,16 @@ void TEST_prot_tree_modifications() {
 
             TEST_EXPECT_SAVED_TOPOLOGY(env, "prot-calclength");
         }
-        TEST_EXPECT_EQUAL(env.combines_performed(), 265);
+        TEST_EXPECT_COMBINES_PERFORMED(env, 265);
 
         env.pop();
     }
 
     TEST_EXPECTATION(modifyingTopoResultsIn(MOD_OPTI_NNI, "prot-opti-NNI", PARSIMONY_NNI_MARKED, env, true)); // test recursive NNI
-    TEST_EXPECT_EQUAL(env.combines_performed(), 165);
+    TEST_EXPECT_COMBINES_PERFORMED(env, 165);
 
     TEST_EXPECTATION(modifyingTopoResultsIn(MOD_OPTI_GLOBAL, "prot-opti-marked-global", PARSIMONY_OPTI_MARKED, env, true)); // test recursive NNI+KL
-    TEST_EXPECT_EQUAL(env.combines_performed(), 2535);
+    TEST_EXPECT_COMBINES_PERFORMED(env, 2535);
 
     // -----------------------------
     //      test optimize (all)
@@ -2534,23 +2672,23 @@ void TEST_prot_tree_modifications() {
     TEST_EXPECT_EQUAL(GBT_count_marked_species(env.gbmain()), 14);
 
     TEST_EXPECT_PARSVAL(env, PARSIMONY_MIXED);
-    TEST_EXPECT_EQUAL(env.combines_performed(), 0);
+    TEST_EXPECT_COMBINES_PERFORMED(env, 0);
 
     // test branchlength calculation
     // (optimizations below implicitely recalculates branchlengths)
     TEST_EXPECTATION(modifyingTopoResultsIn(MOD_CALC_LENS, "prot-calclength", PARSIMONY_MIXED, env, false));
-    TEST_EXPECT_EQUAL(env.combines_performed(), 80);
+    TEST_EXPECT_COMBINES_PERFORMED(env, 80);
 
     TEST_EXPECTATION(modifyingTopoResultsIn(MOD_OPTI_NNI, "prot-opti-all-NNI", PARSIMONY_NNI_ALL, env, true)); // test recursive NNI
-    TEST_EXPECT_EQUAL(env.combines_performed(), 365);
+    TEST_EXPECT_COMBINES_PERFORMED(env, 365);
 
     {
         env.push();
         TEST_EXPECTATION(modifyingTopoResultsIn(MOD_OPTI_GLOBAL, "prot-opti-global", PARSIMONY_OPTI_ALL, env, false)); // test recursive NNI+KL
-        TEST_EXPECT_EQUAL(env.combines_performed(), 2049);
+        TEST_EXPECT_COMBINES_PERFORMED(env, 2049);
 
         TEST_EXPECTATION(movingRootDoesntAffectCosts(PARSIMONY_OPTI_ALL));
-        TEST_EXPECT_EQUAL(env.combines_performed(), 254);
+        TEST_EXPECT_COMBINES_PERFORMED(env, 254);
         env.pop();
     }
 }
@@ -2565,7 +2703,7 @@ void TEST_node_stack() {
 
     const int PARSIMONY_ORG = 301;
     TEST_EXPECT_PARSVAL(env, PARSIMONY_ORG);
-    TEST_EXPECT_EQUAL(env.combines_performed(), 14);
+    TEST_EXPECT_COMBINES_PERFORMED(env, 14);
 
     TEST_VALIDITY(env.root_node()->sequence_state_valid());
 
@@ -2601,7 +2739,7 @@ void TEST_node_stack() {
     }
 
     // test set root to CytAquat + set root to CloButyr + pop (failed, fixed by [13138])
-    TEST_EXPECT_EQUAL(env.combines_performed(), 0);
+    TEST_EXPECT_COMBINES_PERFORMED(env, 0);
     for (int calcCostsBetween = 0; calcCostsBetween<2; ++calcCostsBetween) {
         TEST_ANNOTATE(GBS_global_string("calcCostsBetween=%i", calcCostsBetween));
 
@@ -2613,20 +2751,20 @@ void TEST_node_stack() {
 
         if (calcCostsBetween) {
             TEST_EXPECT_PARSVAL(env, PARSIMONY_ORG);
-            TEST_EXPECT_EQUAL(env.combines_performed(), 2);
+            TEST_EXPECT_COMBINES_PERFORMED(env, 2);
         }
 
         env.root_node()->findLeafNamed("CloButyr")->set_root();
 
         TEST_VALIDITY(env.root_node()->sequence_state_valid());
         TEST_EXPECT_PARSVAL(env, PARSIMONY_ORG);
-        TEST_EXPECT_EQUAL(env.combines_performed(), 6);
+        TEST_EXPECT_COMBINES_PERFORMED(env, 6);
 
         env.pop();
 
         TEST_VALIDITY(env.root_node()->sequence_state_valid());
         TEST_EXPECT_PARSVAL(env, PARSIMONY_ORG);
-        TEST_EXPECT_EQUAL(env.combines_performed(), 0);
+        TEST_EXPECT_COMBINES_PERFORMED(env, 0);
         TEST_EXPECT_VALID_TREE(env.root_node());
     }
     {
@@ -2695,7 +2833,7 @@ void TEST_node_stack() {
     }
 
     // remove + quick add marked + pop() both works
-    TEST_EXPECTATION(modifyingTopoResultsIn(MOD_QUICK_READD,     "nucl-add-quick", PARSIMONY_ORG-23, env, true)); // test quick-add
+    TEST_EXPECTATION(modifyingTopoResultsIn(MOD_QUICK_READD,     "nucl-add-quick", PARSIMONY_ORG-15, env, true)); // test quick-add
 
     // remove + quick-add marked + pop() quick-add -> corrupts tree
     // (root-edge is lost)
@@ -2804,7 +2942,7 @@ void TEST_node_stack() {
         TEST_EXPECT_VALID_TREE(env.root_node());
     }
 
-    TEST_EXPECT_EQUAL(env.combines_performed(), 4122);
+    TEST_EXPECT_COMBINES_PERFORMED_DIFFERS_IF_SANITIZED(env, 3334, 3338);
 }
 
 void TEST_node_edge_resources() {
@@ -2839,7 +2977,7 @@ void TEST_node_edge_resources() {
     const int PARSIMONY_ORG = 301;
 
     TEST_EXPECT_PARSVAL(env, PARSIMONY_ORG);
-    TEST_EXPECT_EQUAL(env.combines_performed(), 14);
+    TEST_EXPECT_COMBINES_PERFORMED(env, 14);
 
     AP_tree_nlen *CloButyr = env.root_node()->findLeafNamed("CloButyr");
     AP_tree_nlen *CloButy2 = env.root_node()->findLeafNamed("CloButy2"); // brother of CloButyr

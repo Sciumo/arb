@@ -643,17 +643,17 @@ void TEST_calc_bootstraps() {
 
         root->reorder_tree(BIG_BRANCHES_TO_TOP); TEST_EXPECT_NEWICK(nREMARK, root, bs_origi_topo);
 
-        TEST_EXPECT_EQUAL(env.combines_performed(), 0);
+        TEST_EXPECT_COMBINES_PERFORMED(env, 0);
 
         root_edge->nni_rec(ANY_EDGE, AP_BL_MODE(AP_BL_BL_ONLY|AP_BL_BOOTSTRAP_LIMIT),    NULL, true);
         root->reorder_tree(BIG_BRANCHES_TO_TOP);
         TEST_EXPECT_NEWICK(nREMARK, root, bs_limit_topo);
-        TEST_EXPECT_EQUAL(env.combines_performed(), 170);
+        TEST_EXPECT_COMBINES_PERFORMED(env, 170);
 
         root_edge->nni_rec(ANY_EDGE, AP_BL_MODE(AP_BL_BL_ONLY|AP_BL_BOOTSTRAP_ESTIMATE), NULL, true);
         root->reorder_tree(BIG_BRANCHES_TO_TOP);
         TEST_EXPECT_NEWICK(nREMARK, root, bs_estim_topo);
-        TEST_EXPECT_EQUAL(env.combines_performed(), 156);
+        TEST_EXPECT_COMBINES_PERFORMED(env, 156);
 
         TEST_EXPECT_EQUAL(env.root_node(), root);
     }
