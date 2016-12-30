@@ -152,6 +152,7 @@ USE_GCC_47_OR_HIGHER:=
 USE_GCC_48_OR_HIGHER:=
 USE_GCC_49_OR_HIGHER:=
 USE_GCC_50_OR_HIGHER:=
+USE_GCC_60_OR_HIGHER:=
 
 ifeq ($(USE_CLANG),0)
  ifeq ($(USE_GCC_MAJOR),4)
@@ -175,12 +176,17 @@ ifeq ($(USE_CLANG),0)
    endif
   endif
  else
+  # gcc 5.x or higher
   USE_GCC_452_OR_HIGHER:=yes
   USE_GCC_46_OR_HIGHER:=yes
   USE_GCC_47_OR_HIGHER:=yes
   USE_GCC_48_OR_HIGHER:=yes
   USE_GCC_49_OR_HIGHER:=yes
   USE_GCC_50_OR_HIGHER:=yes
+  ifneq ($(USE_GCC_MAJOR),5)
+   # gcc 6.x or higher
+   USE_GCC_60_OR_HIGHER:=yes
+  endif
  endif
 endif
 
@@ -679,18 +685,23 @@ endif
 
 #---------------------- SSE vectorizer
 
-BROKEN_VECTORIZATION:=0
-ifeq ('$(COMPILER_VERSION)','6.1.0')
-	BROKEN_VECTORIZATION:=1
-endif
-ifeq ('$(COMPILER_VERSION)','6.2.0')
-	BROKEN_VECTORIZATION:=1
-endif
-
-ifeq ('$(BROKEN_VECTORIZATION)','1')
-# see http://bugs.arb-home.de/ticket/700
-	cflags += -fno-tree-loop-vectorize
-	DISABLE_VECTORIZE_CHECK:=1
+ifeq ('$(USE_GCC_60_OR_HIGHER)','yes')
+ ifeq ('$(USE_GCC_MAJOR)','6')
+  ifneq ('$(findstring $(USE_GCC_MINOR),123)','')
+   # gcc 6.1.x .. 6.3.x
+   # see http://bugs.arb-home.de/ticket/700
+   cflags += -fno-tree-loop-vectorize
+   DISABLE_VECTORIZE_CHECK:=1
+  else
+   ifeq ($(DEBUG),0)
+    $(error vectorizing incompatible? check ticket 700 with this compiler version)
+   endif
+  endif
+ else
+  ifeq ($(DEBUG),0)
+   $(error vectorizing incompatible? check ticket 700 with this compiler version)
+  endif
+ endif
 endif
 
 ifeq ($(DEBUG),0)
