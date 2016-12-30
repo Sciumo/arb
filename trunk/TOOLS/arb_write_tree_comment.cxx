@@ -10,21 +10,22 @@
 
 #include <arbdbt.h>
 
+static GBDATA *gb_msg_main = NULL;
 
-static void show_message(GBDATA *gb_main, const char *msg) {
-    if (gb_main) {
-        GBT_message(gb_main, msg);
+static void show_message(const char *msg) {
+    if (gb_msg_main) {
+        GBT_message(gb_msg_main, msg);
     }
     else {
         fflush(stdout);
         printf("arb_write_tree_comment: %s\n", msg);
     }
 }
-static void show_error(GBDATA *gb_main, GB_ERROR error) {
-    if (error) show_message(gb_main, GBS_global_string("Error running arb_write_tree_comment (%s)", error));
+static void show_error(GB_ERROR error) {
+    if (error) show_message(GBS_global_string("Error running arb_write_tree_comment (%s)", error));
 }
 
-static void error_with_usage(GBDATA *gb_main, GB_ERROR error) {
+static void error_with_usage(GB_ERROR error) {
     fputs("Usage: arb_write_tree_comment [options] treeName textToAppend\n"
           "Purpose: appends 'textToAppend' to comment of existing tree 'treeName'\n"
           "Available options:\n"
@@ -32,7 +33,7 @@ static void error_with_usage(GBDATA *gb_main, GB_ERROR error) {
           "    -plain                   do NOT prefix timestamp before textToAppend\n"
           , stdout);
 
-    show_error(gb_main, error);
+    show_error(error);
 }
 
 struct parameters {
@@ -109,7 +110,6 @@ int main(int argc, char **argv) {
     GB_ERROR   error = param.scan(argc, argv);
 
     GBDATA   *gb_main      = NULL;
-    GBDATA   *gb_msg_main  = NULL;
     bool      connectToArb = strcmp(param.dbname, ":") == 0;
     GB_shell  shell;
 
@@ -118,7 +118,7 @@ int main(int argc, char **argv) {
         if (connectToArb) gb_msg_main = gb_main;
     }
 
-    if (error) error_with_usage(gb_main, error);
+    if (error) error_with_usage(error);
     else {
         if (!gb_main) {
             if (connectToArb) error = "you have to start an arbdb server first";
@@ -133,7 +133,7 @@ int main(int argc, char **argv) {
     if (gb_main) {
         if (!error && !connectToArb) {
             error = GB_save_as(gb_main, param.dbsavename, "a");
-            if (error) show_error(gb_main, error);
+            if (error) show_error(error);
         }
         GB_close(gb_main);
     }

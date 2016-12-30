@@ -47,20 +47,22 @@ static void add_bootstrap(TreeNode *node, double hundred) {
     add_bootstrap(node->get_rightson(), hundred);
 }
 
-static void show_message(GBDATA *gb_main, const char *msg) {
-    if (gb_main) {
-        GBT_message(gb_main, msg);
+static GBDATA *gb_msg_main = NULL;
+
+static void show_message(const char *msg) {
+    if (gb_msg_main) {
+        GBT_message(gb_msg_main, msg);
     }
     else {
         fflush(stdout);
         printf("arb_read_tree: %s\n", msg);
     }
 }
-static void show_error(GBDATA *gb_main, GB_ERROR error) {
-    if (error) show_message(gb_main, GBS_global_string("Error running arb_read_tree (%s)", error));
+static void show_error(GB_ERROR error) {
+    if (error) show_message(GBS_global_string("Error running arb_read_tree (%s)", error));
 }
 
-static void error_with_usage(GBDATA *gb_main, GB_ERROR error) {
+static void error_with_usage(GB_ERROR error) {
     fputs("Usage: arb_read_tree [options] tree_name treefile [comment]\n"
           "Available options:\n"
           "    -db database savename    specify database and savename (default is 'running ARB')\n"
@@ -69,7 +71,7 @@ static void error_with_usage(GBDATA *gb_main, GB_ERROR error) {
           "    -commentFromFile file    read tree comment from 'file'\n"
           , stdout);
 
-    show_error(gb_main, error);
+    show_error(error);
 }
 
 struct parameters {
@@ -184,7 +186,6 @@ int main(int argc, char **argv) {
     GB_ERROR error = param.scan(argc, argv);
 
     GBDATA   *gb_main      = NULL;
-    GBDATA   *gb_msg_main  = NULL;
     bool      connectToArb = strcmp(param.dbname, ":") == 0;
     GB_shell  shell;
 
@@ -193,7 +194,7 @@ int main(int argc, char **argv) {
         if (connectToArb) gb_msg_main = gb_main;
     }
 
-    if (error) error_with_usage(gb_main, error);
+    if (error) error_with_usage(error);
     else {
         if (!gb_main) {
             if (connectToArb) error = "you have to start an arbdb server first";
@@ -212,7 +213,7 @@ int main(int argc, char **argv) {
                 }
             }
 
-            show_message(gb_msg_main, GBS_global_string("Reading tree from '%s' ..", param.treefilename));
+            show_message(GBS_global_string("Reading tree from '%s' ..", param.treefilename));
             {
                 char *warnings             = 0;
                 bool  allow_length_scaling = !param.consense && !param.scale;
@@ -222,7 +223,7 @@ int main(int argc, char **argv) {
                     error = GB_await_error();
                 }
                 else if (warnings) {
-                    show_message(gb_msg_main, warnings);
+                    show_message(warnings);
                     free(warnings);
                 }
             }
@@ -230,7 +231,7 @@ int main(int argc, char **argv) {
 
         if (!error) {
             if (param.scale) {
-                show_message(gb_msg_main, GBS_global_string("Scaling branch lengths by factor %f", param.scale_factor));
+                show_message(GBS_global_string("Scaling branch lengths by factor %f", param.scale_factor));
                 TREE_scale(tree, param.scale_factor, 1.0);
             }
 
@@ -239,7 +240,7 @@ int main(int argc, char **argv) {
                     error = "Minimum for -consense is 1";
                 }
                 else {
-                    show_message(gb_msg_main, GBS_global_string("Reinterpreting branch lengths as consense values (%i trees)", param.calculated_trees));
+                    show_message(GBS_global_string("Reinterpreting branch lengths as consense values (%i trees)", param.calculated_trees));
                     add_bootstrap(tree, param.calculated_trees);
                 }
             }
@@ -276,8 +277,8 @@ int main(int argc, char **argv) {
             error = GB_end_transaction(gb_main, error);
         }
 
-        if (error) show_error(gb_main, error);
-        else       show_message(gb_msg_main, GBS_global_string("Tree %s read into the database", param.tree_name));
+        if (error) show_error(error);
+        else       show_message(GBS_global_string("Tree %s read into the database", param.tree_name));
 
         UNCOVERED();
         destroy(tree);
@@ -288,7 +289,7 @@ int main(int argc, char **argv) {
     if (gb_main) {
         if (!error && !connectToArb) {
             error = GB_save_as(gb_main, param.dbsavename, "a");
-            if (error) show_error(gb_main, error);
+            if (error) show_error(error);
         }
         GB_close(gb_main);
     }
