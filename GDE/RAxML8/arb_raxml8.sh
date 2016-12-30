@@ -5,10 +5,16 @@ BASES_PER_THREAD=300
 SELF=`basename "$0"`
 
 # set up environment
-if [ -z $LD_LIBRARY_PATH ]; then
-    LD_LIBRARY_PATH="$ARBHOME/lib"
+if [ -z $ARB_LIBRARY_PATH ]; then
+    # special handling for standalone use
+    if [ -z $LD_LIBRARY_PATH ]; then
+        LD_LIBRARY_PATH="$ARBHOME/lib"
+    else
+        LD_LIBRARY_PATH="$ARBHOME/lib:$LD_LIBRARY_PATH"
+    fi
 else
-    LD_LIBRARY_PATH="$ARBHOME/lib:$LD_LIBRARY_PATH"
+    # normal arb integration; compare to ../../GDEHELP/ARB_GDEmenus.source@RUN_IN_WINDOW
+    LD_LIBRARY_PATH="${ARB_LIBRARY_PATH}"
 fi
 export LD_LIBRARY_PATH
 
@@ -100,7 +106,7 @@ cpu_get_cores() {
 extract_line_suffix() {
     local LOG=$1
     local PREFIX=$2
-    grep -P "^${PREFIX}\s*" $LOG | sed "s/${PREFIX}\s*//"
+    cat $LOG | perl -e "while (<>) { if (/^${PREFIX}\s*/) { print $'; } }"
 }
 
 extract_likelihood() {
