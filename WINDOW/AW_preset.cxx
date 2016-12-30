@@ -862,12 +862,13 @@ void AW_gc_manager::add_gc(const char *gc_description, int& gc, gc_type type, co
         const char *close_brace = strchr(default_color+1, '}');
         aw_assert(close_brace); // missing '}' in reference!
         char *referenced_colorlabel = ARB_strpartdup(default_color+1, close_brace-1);
-        bool  found                 = false;
+
+        IF_ASSERTION_USED(bool found = false);
 
         for (gc_container::iterator g = GCs.begin(); g != GCs.end(); ++g) {
             if (strcmp(g->colorlabel.c_str(), referenced_colorlabel) == 0) {
                 default_color = AW_root::SINGLETON->awar(color_awarname(gc_base_name, g->key))->read_char_pntr(); // @@@ should use default value (not current value)
-                found         = true;
+                IF_ASSERTION_USED(found = true);
                 break;
             }
         }

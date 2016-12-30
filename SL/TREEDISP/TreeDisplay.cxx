@@ -2287,7 +2287,7 @@ void AWT_graphic_tree::show_dendrogram(AP_tree *at, Position& Pen, DendroSubtree
         {
             Position group[4] = { s0, s1, n1, n0 }; // init with long side at top (=traditional orientation)
 
-            bool flip;
+            bool flip = false;
             switch (group_orientation) {
                 case GO_TOP:      flip = false; break;
                 case GO_BOTTOM:   flip = true; break;

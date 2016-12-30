@@ -182,6 +182,7 @@ EdgeChain::EdgeChain(AP_tree_edge *startEgde, EdgeSpec whichEdges, bool depthFir
      */
 
 #if defined(DEVEL_RALF)
+# if defined(ASSERTION_USED) || defined(UNIT_TESTS)
     if (whichEdges & SKIP_UNMARKED_EDGES) {
         AP_tree_nlen *son         = startEgde->sonNode();
         bool          flags_valid = son->has_correct_mark_flags();
@@ -192,6 +193,7 @@ EdgeChain::EdgeChain(AP_tree_edge *startEgde, EdgeSpec whichEdges, bool depthFir
             GBK_terminate("detected invalid flags while building chain");
         }
     }
+# endif
 #endif
 
     ap_assert(!exists); // only one existing chain is allowed!

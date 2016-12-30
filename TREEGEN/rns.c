@@ -322,7 +322,7 @@ static RNS dupRNS(RNS rns)
 
     return neu;
 }
-static void calcMutationMatrix(DoubleProb mutationMatrix, double muteRate, double gcDruck, double gcRate, double atRate, double *pairProb)
+static void calcMutationMatrix(DoubleProb mutationMatrix, double gcDruck, double gcRate, double atRate, double *pairProb)
 {
     double k = transitionRate/transversionRate,
         fa   = (1.0-gcDruck)*atRate,
@@ -436,8 +436,8 @@ static void mutateRNS(int no_of_father, RNS rns, int steps, int depth)
         {
             double pairProb;                               // Wahrscheinlichkeit, dass ein Paar im helikalen Bereich entsteht
 
-            calcMutationMatrix(helixMutationMatrix, 1.0, getFrand(helixGcDruck), getFrand(helixGcRate), getFrand(helixAtRate), &pairProb);
-            calcMutationMatrix(loopMutationMatrix, actMutationRate, getFrand(loopGcDruck), getFrand(loopGcRate), getFrand(loopAtRate), NULL);
+            calcMutationMatrix(helixMutationMatrix, /*1.0,*/ getFrand(helixGcDruck), getFrand(helixGcRate), getFrand(helixAtRate), &pairProb);
+            calcMutationMatrix(loopMutationMatrix, /*actMutationRate,*/ getFrand(loopGcDruck), getFrand(loopGcRate), getFrand(loopAtRate), NULL);
 
             pairTrials = calcPairTrials(pairProb, actPairPart);
         }
