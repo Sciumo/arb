@@ -55,8 +55,8 @@ build:  $(VERSIONS:%=$(RAXML_BIN)%)
 # (MAKEFLAGS need to be unset as ARB sets "-r", suppressing built-in rules,
 #  which are needed by RAxML)
 
-$(RAXML_BIN)%: unpack.%.stamp
-	MAKEFLAGS= $(MAKE) -C $(<:unpack.%.stamp=builddir.%) -f Makefile.$(@:$(RAXML_BIN)%=%).$(MAKE_SUFFIX)
+$(RAXML_BIN)%: unpack.%.stamp Makefile
+	( MAKEFLAGS= $(MAKE) -C $(<:unpack.%.stamp=builddir.%) -f Makefile.$(@:$(RAXML_BIN)%=%).$(MAKE_SUFFIX) ) 2>&1 | grep -vi ' warning: '
 	cp $(<:unpack.%.stamp=builddir.%)/raxmlHPC-* $@
 
 unpack.%.stamp: $(TARFILE)

@@ -1885,7 +1885,7 @@ ETAGS_REST =--C-kinds=dev    --C++-kinds=dev
 
 FILTER_TAGS_SOURCES= \
 	$(SED) -e 's/^.\///g' | \
-	grep -P -v -i '^HEADERLIBS|^GDE/|/GEN[CH]/'
+	grep -vi '^HEADERLIBS\|^GDE/\|/GEN[CH]/'
 
 $(TAG_SOURCE_HEADERS): links
 	find . \( -name '*.hxx' -o -name "*.h" \) -type f | $(FILTER_TAGS_SOURCES) > $@

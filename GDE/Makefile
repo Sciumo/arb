@@ -58,10 +58,17 @@ ifeq ('$(UNIT_TESTS)','0')
 sub_cflags:=$(subst -DUNIT_TESTS,,$(sub_cflags))
 endif
 
-# note the above does not affect all subdirs. see also manual changes to:
+# skip vectorization info
+sub_cflags:=$(subst -fopt-info-vec-missed,,$(sub_cflags))
+sub_cflags:=$(subst -fopt-info-vec,,$(sub_cflags))
+sub_cflags:=$(subst -fopt-info,,$(sub_cflags))
+
+# note the above substs do not affect ALL subdirs. see also manual changes to:
 # - MrBAYES/mrbayes_3.2.1/Makefile
 # - PROBCONS/probcons/Makefile
 # - FASTTREE/Makefile
+# - SATIVA/Makefile
+# - MAFFT/Makefile
 
 # --------------------------------------------------------------------------------
 
