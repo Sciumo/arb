@@ -6,6 +6,10 @@ PROG  = MAFFT
 # force gcc (hack to fix cent5 build)
 export CC = gcc
 
+# dont spam
+ANY_EXISTING_FILE=Makefile
+POST_COMPILE_LOCAL := 2>&1 | $(ARBHOME)/SOURCE_TOOLS/postcompile.pl --no-warnings $(ANY_EXISTING_FILE)
+
 #disable makeflags
 MAKEFLAGS=
 MAFFTDIR=mafft-7.055-with-extensions
@@ -40,10 +44,10 @@ clean_dirs:
 clean: clean_core clean_extensions clean_here clean_dirs
 
 make_core:
-	+cd $(MAFFTDIR)/core && make && make install
+	+( cd $(MAFFTDIR)/core && make && make install ) $(POST_COMPILE_LOCAL)
 
 make_extensions:
-	+cd $(MAFFTDIR)/extensions && make && make install
+	+( cd $(MAFFTDIR)/extensions && make && make install ) $(POST_COMPILE_LOCAL)
 
 mafft.stamp: make_core make_extensions
 	touch mafft.stamp
