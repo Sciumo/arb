@@ -5,9 +5,9 @@ BASES_PER_THREAD=300
 SELF=`basename "$0"`
 
 # set up environment
-if [ -z $ARB_LIBRARY_PATH ]; then
+if [ -z "$ARB_LIBRARY_PATH" ]; then
     # special handling for standalone use
-    if [ -z $LD_LIBRARY_PATH ]; then
+    if [ -z "$LD_LIBRARY_PATH" ]; then
         LD_LIBRARY_PATH="$ARBHOME/lib"
     else
         LD_LIBRARY_PATH="$ARBHOME/lib:$LD_LIBRARY_PATH"
@@ -88,8 +88,8 @@ cpu_has_feature() {
 
 cpu_get_cores() {
     # honor Torque/PBS num processes (or make sure we follow, if enforced)
-    if [ ! -z $PBS_NP ]; then
-        echo $PBS_NP
+    if [ ! -z "$PBS_NP" ]; then
+        echo "$PBS_NP"
         return
     fi
     # extract physical CPUs from host
@@ -104,15 +104,15 @@ cpu_get_cores() {
 }
 
 extract_line_suffix() {
-    local LOG=$1
-    local PREFIX=$2
-    cat $LOG | perl -e "while (<>) { if (/^${PREFIX}\s*/) { print $'; } }"
+    local LOG="$1"
+    local PREFIX="$2"
+    perl -e "while (<>) { if (/^${PREFIX}\s*/) { print $'; } }" <"$LOG"
 }
 
 extract_likelihood() {
-    local LOG=$1
-    local PREFIX=$2
-    local SUFFIX=`extract_line_suffix $LOG $PREFIX`
+    local LOG="$1"
+    local PREFIX="$2"
+    local SUFFIX="`extract_line_suffix $LOG $PREFIX`"
     if [ -z "$SUFFIX" ]; then
         local FAILED_DETECTION="failed to detect likelyhood"
         echo $FAILED_DETECTION
@@ -130,7 +130,7 @@ export_input_tree() {
         report_error "you have to select an 'Input tree'"
     fi
 
-    arb_export_tree $INPUTTREE > $TREEFILE
+    arb_export_tree "$INPUTTREE" > "$TREEFILE"
 }
 
 # --------------------------
@@ -138,13 +138,13 @@ export_input_tree() {
 
 bootstrap_and_consenseIfReq() {
     # run $BOOTSTRAP BS searches
-    $RAXML -b "$SEED" -m $MODEL -p "$SEED" -s "$SEQFILE" \
+    $RAXML -b "$SEED" -m "$MODEL" -p "$SEED" -s "$SEQFILE" \
         -N "$BOOTSTRAPS" \
         -n BOOTSTRAP
 
     if [ -n "$MRE" ]; then
         # compute extended majority rule consensus tree
-        $RAXML -J MRE -m $MODEL -z RAxML_bootstrap.BOOTSTRAP -n BOOTSTRAP_CONSENSUS
+        $RAXML -J MRE -m "$MODEL" -z RAxML_bootstrap.BOOTSTRAP -n BOOTSTRAP_CONSENSUS
     fi
 }
 
@@ -169,11 +169,11 @@ bootstrapAsyncIfRequested_and_wait() {
 }
 
 import_trees() {
-    local TPREFIX=$1
-    local RUN=$2
+    local TPREFIX="$1"
+    local RUN="$2"
     local COMMENT="$3"
 
-    local MAINTREE=${TPREFIX}.${RUN}
+    local MAINTREE="${TPREFIX}.${RUN}"
     # imports tree MAINTREE
     # - with support values (if bootstrapping requested)
     # - else "as is"
@@ -181,21 +181,21 @@ import_trees() {
 
     if [ "$BOOTSTRAPS" != "no" ]; then
         # draw bipartition information
-        $RAXML -f b -m $MODEL \
-          -t ${TPREFIX}.${RUN} \
+        $RAXML -f b -m "$MODEL" \
+          -t "${TPREFIX}.${RUN}" \
           -z RAxML_bootstrap.BOOTSTRAP \
-          -n ${RUN}_WITH_SUPPORT
+          -n "${RUN}_WITH_SUPPORT"
 
-        MAINTREE=RAxML_bipartitions.${RUN}_WITH_SUPPORT
+        MAINTREE="RAxML_bipartitions.${RUN}_WITH_SUPPORT"
         COMMENT="${COMMENT} BOOTSTRAPS=${BOOTSTRAPS}"
     fi
 
-    arb_read_tree ${TREENAME} ${MAINTREE} "${COMMENT}"
+    arb_read_tree "${TREENAME}" "${MAINTREE}" "${COMMENT}"
 
     if [ -n "$MRE" ]; then
         if [ "$BOOTSTRAPS" != "no" ]; then
             # otherwise no MRE tree possible
-            arb_read_tree ${TREENAME}_mre RAxML_MajorityRuleExtendedConsensusTree.BOOTSTRAP_CONSENSUS \
+            arb_read_tree "${TREENAME}_mre" RAxML_MajorityRuleExtendedConsensusTree.BOOTSTRAP_CONSENSUS \
               "PRG=RAxML8 MRE consensus tree of $BOOTSTRAPS bootstrap searches performed for species in ${TREENAME}"
         fi
     fi
@@ -206,7 +206,7 @@ import_trees() {
 
 dna_tree_thorough() {
     # do $REPEATS searches for best ML tree
-    $RAXML -f d -m $MODEL -p "$SEED" -s "$SEQFILE"  \
+    $RAXML -f d -m "$MODEL" -p "$SEED" -s "$SEQFILE"  \
         -N "$REPEATS" \
         -n TREE_INFERENCE &
 
@@ -222,7 +222,7 @@ dna_tree_quick() {
     fi
 
     # run fast bootstraps
-    $RAXML -f a -m $MODEL -p "$SEED" -x "$SEED" -s "$SEQFILE" \
+    $RAXML -f a -m "$MODEL" -p "$SEED" -x "$SEED" -s "$SEQFILE" \
       -N "$BOOTSTRAPS" \
       -n FAST_BS
 
@@ -232,7 +232,7 @@ dna_tree_quick() {
 
     # create consensus tree
     if [ -n "$MRE" ]; then
-        $RAXML -J MRE -m $MODEL -z RAxML_bootstrap.FAST_BS -n FAST_BS_MAJORITY
+        $RAXML -J MRE -m "$MODEL" -z RAxML_bootstrap.FAST_BS -n FAST_BS_MAJORITY
         # import
         arb_read_tree ${TREENAME}_mre RAxML_MajorityRuleExtendedConsensusTree.FAST_BS_MAJORITY \
           "PRG=RAxML8 MRE consensus tree of $BOOTSTRAPS rapid-bootstraps performed while calculating ${TREENAME}"
@@ -242,8 +242,8 @@ dna_tree_quick() {
 dna_tree_add() {
     export_input_tree
 
-    $RAXML -f d -m $MODEL -p "$SEED" -s "$SEQFILE" \
-      -g $TREEFILE \
+    $RAXML -f d -m "$MODEL" -p "$SEED" -s "$SEQFILE" \
+      -g "$TREEFILE" \
       -n ADD &
 
     bootstrapAsyncIfRequested_and_wait
@@ -255,9 +255,9 @@ dna_tree_add() {
 dna_tree_optimize() {
     export_input_tree
 
-    $RAXML -f t -m $MODEL -p "$SEED" -s "$SEQFILE" \
+    $RAXML -f t -m "$MODEL" -p "$SEED" -s "$SEQFILE" \
       -N "$REPEATS" \
-      -t $TREEFILE \
+      -t "$TREEFILE" \
       -n OPTIMIZE &
 
     bootstrapAsyncIfRequested_and_wait
@@ -269,8 +269,8 @@ dna_tree_optimize() {
 dna_tree_calcblen() {
     export_input_tree
 
-    $RAXML -f e -m $MODEL -s "$SEQFILE" \
-      -t $TREEFILE \
+    $RAXML -f e -m "$MODEL" -s "$SEQFILE" \
+      -t "$TREEFILE" \
       -n CALCBLEN &
 
     bootstrapAsyncIfRequested_and_wait
@@ -293,7 +293,7 @@ dna_tree_score() {
     export_input_tree
 
     $RAXML -f n -m $MODEL -s "$SEQFILE" \
-      -z $TREEFILE \
+      -z "$TREEFILE" \
       -n SCORE
 
     RESULT=`extract_likelihood RAxML_info.SCORE 'Tree\s*0\s*Likelihood'`
@@ -374,10 +374,10 @@ while [ -n "$1" ]; do
 done
 
 # correct output treename (ensure prefix 'tree_', avoid things like 'tree_tree' etc)
-TREENAME=${TREENAME##tree}
-TREENAME=${TREENAME#_}
-TREENAME=${TREENAME#_}
-TREENAME=tree_${TREENAME}
+TREENAME="${TREENAME##tree}"
+TREENAME="${TREENAME#_}"
+TREENAME="${TREENAME#_}"
+TREENAME="tree_${TREENAME}"
 
 # use time as random SEED if empty
 if [ -z "$SEED" ]; then
@@ -392,7 +392,7 @@ FULLSEQFILE="${DIR}/${SEQFILE}"
 
 arb_convert_aln --arb-notify -GenBank "$FILE" -phylip "${FULLSEQFILE}" 2>&1 |\
   grep -v "^WARNING(14): LOCUS" || true # remove spurious warning
-rm $FILE
+rm "$FILE"
 
 cd "$DIR"
 
@@ -427,10 +427,10 @@ BP=`extract_line_suffix RAxML_info.PATTERNS "Alignment Patterns:"`
 
 # warn if model is not recommended for given number of sequences
 BAD_PRACTICE="This is not considered good practice.\nPlease refer to the RAxML manual for details."
-if [ "$MODEL" == "GTRGAMMA" -a $NSEQS -gt 10000 ]; then
+if [ "$MODEL" == "GTRGAMMA" -a "$NSEQS" -gt 10000 ]; then
     arb_message "Using the GTRGAMMA model on more than 10,000 sequences.\n$BAD_PRACTICE"
 fi
-if [ "$MODEL" == "GTRCAT" -a $NSEQS -lt 150 ]; then
+if [ "$MODEL" == "GTRCAT" -a "$NSEQS" -lt 150 ]; then
     arb_message "Using the GTRCAT model on less than 150 sequences.\n$BAD_PRACTICE"
 fi
 
@@ -443,7 +443,7 @@ MAX_THREADS=$(( ( $BP - 1 ) / $BASES_PER_THREAD + 2))
 # +1 is for master thread,
 # another +1 for the first $BASES_PER_THREAD (bash truncates); -1 to avoid extra thread if BP is divisible by BASES_PER_THREAD
 
-if [ $CORES -lt 1 ]; then
+if [ "$CORES" -lt 1 ]; then
     # failed to detect CORES
     SETENVAR_HINT="set the environment variable PBS_NP to the number of cores available (before you start arb)"
     if [ -z "$THREADS" ]; then
@@ -460,28 +460,28 @@ if [ $CORES -lt 1 ]; then
 else
     MAX_TH_NOTE="maximum useful thread-count for alignment with ${BP} bp would be ${MAX_THREADS}"
     if [ -z "$THREADS" ]; then
-        if [ $CORES -lt $MAX_THREADS ]; then
+        if [ "$CORES" -lt "$MAX_THREADS" ]; then
             echo "Note: Limiting threads to $CORES available cores (${MAX_TH_NOTE})"
             THREADS=$CORES
         else
             THREADS=$MAX_THREADS
             if [ "$TRY_ASYNC" = "1" ]; then
-                if [ $(($THREADS * 2)) -gt $CORES ]; then
+                if [ "$(($THREADS * 2))" -gt "$CORES" ]; then
                     # split threads between BS and ML search
-                    if [ $((($THREADS-1) * 2)) -le $CORES ]; then
+                    if [ "$((($THREADS-1) * 2))" -le "$CORES" ]; then
                         THREADS=$(($THREADS-1))
                     else
-                        if [ $((($THREADS-2) * 2)) -le $CORES ]; then
+                        if [ "$((($THREADS-2) * 2))" -le "$CORES" ]; then
                             THREADS=$(($THREADS-2))
                         fi
                     fi
                 fi
-                if [ $THREADS -lt $MAX_THREADS ]; then
+                if [ "$THREADS" -lt "$MAX_THREADS" ]; then
                     arb_message "Note: reduced threads to $THREADS to allow parallel execution of bootstrapping\nset 'CPU thread override' to ${MAX_THREADS} to avoid that"
                 fi
             fi
         fi
-        if [ $THREADS -lt 2 ]; then
+        if [ "$THREADS" -lt 2 ]; then
             # use at least 2 threads (required by PTHREADS version)
             THREADS=2
         fi
@@ -490,7 +490,7 @@ else
     fi
 fi
 
-if [ $CORES -lt $THREADS ]; then
+if [ "$CORES" -lt "$THREADS" ]; then
     arb_message "Performance-Warning: Using $THREADS threads on $CORES cores"
 fi
 
