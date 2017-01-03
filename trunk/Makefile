@@ -56,38 +56,36 @@ include config.makefile
 
 # set defaults for variables commented out in config.makefile:
 ifndef DARWIN
-	DARWIN:=0
+ DARWIN:=0
 endif
 ifndef LINUX
-	LINUX:=0
+ LINUX:=0
 endif
 ifndef DEBIAN
-	DEBIAN:=0
+ DEBIAN:=0
 endif
 ifndef REDHAT
-	REDHAT:=0
+ REDHAT:=0
 endif
 ifndef ARB_64
-	ARB_64=1#default to 64bit
+ ARB_64=1#default to 64bit
 endif
 
 # compiler settings:
 ifneq ($(CC),use__A_CC__instead_of__CC)
-
-A_CC:=$(CC)# compile C
-A_CXX:=$(CXX)# compile C++
+ A_CC:=$(CC)# compile C
+ A_CXX:=$(CXX)# compile C++
 
 # uncomment to ensure no submakefile uses CC and CXX directly
-override CC:=use__A_CC__instead_of__CC
-override CXX:=use__A_CXX__instead_of__CXX
-
+ override CC:=use__A_CC__instead_of__CC
+ override CXX:=use__A_CXX__instead_of__CXX
 endif
 
 export CC CXX A_CC A_CXX
 
 # unconditionally prepend $(ARBHOME)/lib to LD_LIBRARY_PATH if not found
 ifeq ($(findstring $(ARBHOME)/lib,$(LD_LIBRARY_PATH)),)
-LD_LIBRARY_PATH:=${ARBHOME}/lib:$(LD_LIBRARY_PATH)
+ LD_LIBRARY_PATH:=${ARBHOME}/lib:$(LD_LIBRARY_PATH)
 endif
 
 # store LD_LIBRARY_PATH to circumvent SIP restrictions:
@@ -131,9 +129,9 @@ endif
 
 ifeq ($(USE_CLANG),1)
 # accept all clang versions:
-ALLOWED_COMPILER_VERSIONS=$(COMPILER_VERSION)
+ ALLOWED_COMPILER_VERSIONS=$(COMPILER_VERSION)
 else
-ALLOWED_COMPILER_VERSIONS=$(ALLOWED_gcc_VERSIONS)
+ ALLOWED_COMPILER_VERSIONS=$(ALLOWED_gcc_VERSIONS)
 endif
 
 COMPILER_VERSION_ALLOWED=$(strip $(subst ___,,$(foreach version,$(ALLOWED_COMPILER_VERSIONS),$(findstring ___$(version)___,___$(COMPILER_VERSION)___))))
@@ -193,19 +191,19 @@ endif
 #---------------------- define special directories for non standard builds
 
 ifeq ($(DARWIN),1)
-	OSX_FW:=/System/Library/Frameworks
-	OSX_FW_OPENGL:=$(OSX_FW)/OpenGL.framework/Versions/A/Libraries
-	OSX_FW_GLUT:=$(OSX_FW)/GLUT.framework/Versions/A/Libraries
-	OSX_FW_IMAGEIO:=$(OSX_FW)/ApplicationServices.framework/Versions/A/Frameworks/ImageIO.framework/Versions/A/Resources
+ OSX_FW:=/System/Library/Frameworks
+ OSX_FW_OPENGL:=$(OSX_FW)/OpenGL.framework/Versions/A/Libraries
+ OSX_FW_GLUT:=$(OSX_FW)/GLUT.framework/Versions/A/Libraries
+ OSX_FW_IMAGEIO:=$(OSX_FW)/ApplicationServices.framework/Versions/A/Frameworks/ImageIO.framework/Versions/A/Resources
 endif
 
 #----------------------
 
 ifeq ($(DARWIN),1)
-	LINK_STATIC=1# link static
+ LINK_STATIC=1# link static
 else
-	LINK_STATIC=0# link dynamically
-#	LINK_STATIC=1# link static (testing only)
+ LINK_STATIC=0# link dynamically
+#  LINK_STATIC=1# link static (testing only)
 endif
 
 shared_cflags :=# flags for shared lib compilation
@@ -216,123 +214,123 @@ extended_cpp_warnings :=# warning flags for C++-compiler only
 DISABLE_VECTORIZE_CHECK:=0
 
 ifeq ($(DEBUG),0)
-	dflags := -DNDEBUG# defines
-	ifeq ($(USE_CLANG),1)
-		cflags := -O3# compiler flags (C and C++)
-	else
-		clflags += -Wl,-O2# passthrough linker flags
-#	------- standard optimization: 
-		cflags := -O3# compiler flags (C and C++)
-#	------- test changed optimization (DISABLE_VECTORIZE_CHECK for -O2 or lower):
-#		cflags := -O2# do not commit uncommented!
-#		DISABLE_VECTORIZE_CHECK:=1
-	endif
+ dflags := -DNDEBUG# defines
+ ifeq ($(USE_CLANG),1)
+  cflags := -O3# compiler flags (C and C++)
+ else
+  clflags += -Wl,-O2# passthrough linker flags
+# ------- standard optimization: 
+  cflags := -O3# compiler flags (C and C++)
+# ------- test changed optimization (DISABLE_VECTORIZE_CHECK for -O2 or lower):
+#  cflags := -O2# do not commit uncommented!
+#  DISABLE_VECTORIZE_CHECK:=1
+ endif
 endif
 
 ifeq ($(DEBIAN),1)
-	clflags += -Wl,-rpath=/usr/lib/arb/lib -Wl,-z,relro
+ clflags += -Wl,-rpath=/usr/lib/arb/lib -Wl,-z,relro
 endif
 
 ifeq ($(DEBUG),1)
-	dflags := -DDEBUG
+ dflags := -DDEBUG
 
-	gdb_common := -g -g3 -ggdb -ggdb3
+ gdb_common := -g -g3 -ggdb -ggdb3
 
 DBGOPTI:=-O0
-ifeq ('$(USE_GCC_48_OR_HIGHER)','yes')
-DBGOPTI:=-Og
-endif
+ ifeq ('$(USE_GCC_48_OR_HIGHER)','yes')
+  DBGOPTI:=-Og
+ endif
 
 ifeq ($(STABS),1)
-	cflags := $(DBGOPTI)  $(gdb_common) -gstabs+  # using stabs+ (enable this for bigger debug session: debugs inlines, quick var inspect, BUT valgrind stops working :/)
-else
-	cflags := $(DBGOPTI) $(gdb_common) # (using dwarf - cant debug inlines here, incredible slow on showing variable content)
-endif
+  cflags := $(DBGOPTI)  $(gdb_common) -gstabs+  # using stabs+ (enable this for bigger debug session: debugs inlines, quick var inspect, BUT valgrind stops working :/)
+ else
+  cflags := $(DBGOPTI) $(gdb_common) # (using dwarf - cant debug inlines here, incredible slow on showing variable content)
+ endif
 
-#	cflags := $(DBGOPTI) $(gdb_common) -gdwarf-3 # (specify explicit dwarf format)
-#	cflags := $(DBGOPTI) $(gdb_common) -gstabs  # using stabs (same here IIRC)
-#	cflags := -O2 $(gdb_common) # use this for callgrind (force inlining)
+# cflags := $(DBGOPTI) $(gdb_common) -gdwarf-3 # (specify explicit dwarf format)
+# cflags := $(DBGOPTI) $(gdb_common) -gstabs  # using stabs (same here IIRC)
+# cflags := -O2 $(gdb_common) # use this for callgrind (force inlining)
 
-ifeq ($(DARWIN),0)
-	clflags += -Wl,-g
-
+ ifeq ($(DARWIN),0)
+  clflags += -Wl,-g
 # Note:
 # Previously '-Wl,-noinhibit-exec' was added to 'clflags' here,
 # to fix some issues with launchpad binutils (see [12972]).
 # But that change also caused 'undefined symbols' NOT to be reported as errors
 # at link time, producing executables that fail at runtime :/
-
-endif
+ endif
 
  ifeq ($(DEBUG_GRAPHICS),1)
-	dflags += -DDEBUG_GRAPHICS
+  dflags += -DDEBUG_GRAPHICS
  endif
 
 endif # DEBUG only
 
 # control how much you get spammed
 # (please do not change default in SVN, use developer specific setting as below)
-	POST_COMPILE := 2>&1 | $(ARBHOME)/SOURCE_TOOLS/postcompile.pl
-#	POST_COMPILE := 2>&1 | $(ARBHOME)/SOURCE_TOOLS/postcompile.pl --original# dont modify compiler output
-#	POST_COMPILE := 2>&1 | $(ARBHOME)/SOURCE_TOOLS/postcompile.pl --loop-optimization-candi# show candidates for vectorization check
-#	POST_COMPILE := 2>&1 | $(ARBHOME)/SOURCE_TOOLS/postcompile.pl --dump-loop-optimization# useful while optimizing code for vectorization
-#	POST_COMPILE := 2>&1 | $(ARBHOME)/SOURCE_TOOLS/postcompile.pl --hide-Noncopyable-advices
-#	POST_COMPILE := 2>&1 | $(ARBHOME)/SOURCE_TOOLS/postcompile.pl --show-useless-Weff++
-#	POST_COMPILE := 2>&1 | $(ARBHOME)/SOURCE_TOOLS/postcompile.pl --no-warnings
-#	POST_COMPILE := 2>&1 | $(ARBHOME)/SOURCE_TOOLS/postcompile.pl --only-first-error
-#	POST_COMPILE := 2>&1 | $(ARBHOME)/SOURCE_TOOLS/postcompile.pl --no-warnings --only-first-error
+POST_COMPILE := 2>&1 | $(ARBHOME)/SOURCE_TOOLS/postcompile.pl
+# POST_COMPILE := 2>&1 | $(ARBHOME)/SOURCE_TOOLS/postcompile.pl --original# dont modify compiler output
+# POST_COMPILE := 2>&1 | $(ARBHOME)/SOURCE_TOOLS/postcompile.pl --loop-optimization-candi# show candidates for vectorization check
+# POST_COMPILE := 2>&1 | $(ARBHOME)/SOURCE_TOOLS/postcompile.pl --dump-loop-optimization# useful while optimizing code for vectorization
+# POST_COMPILE := 2>&1 | $(ARBHOME)/SOURCE_TOOLS/postcompile.pl --hide-Noncopyable-advices
+# POST_COMPILE := 2>&1 | $(ARBHOME)/SOURCE_TOOLS/postcompile.pl --show-useless-Weff++
+# POST_COMPILE := 2>&1 | $(ARBHOME)/SOURCE_TOOLS/postcompile.pl --no-warnings
+# POST_COMPILE := 2>&1 | $(ARBHOME)/SOURCE_TOOLS/postcompile.pl --only-first-error
+# POST_COMPILE := 2>&1 | $(ARBHOME)/SOURCE_TOOLS/postcompile.pl --no-warnings --only-first-error
 ifeq ($(DEVELOPER),ELMAR)
-	POST_COMPILE := 2>&1 | $(ARBHOME)/SOURCE_TOOLS/postcompile.pl --only-first-error
+ POST_COMPILE := 2>&1 | $(ARBHOME)/SOURCE_TOOLS/postcompile.pl --only-first-error
 endif
 
 # Enable extra warnings
-	extended_warnings :=
-	extended_cpp_warnings :=
+extended_warnings :=
+extended_cpp_warnings :=
 
-#       C and C++
-	extended_warnings     += -Wwrite-strings -Wunused -Wno-aggregate-return -Wshadow
+# C and C++
+extended_warnings     += -Wwrite-strings -Wunused -Wno-aggregate-return -Wshadow
 
-#       C++ only
-	extended_cpp_warnings += -Wnon-virtual-dtor -Wreorder -Wpointer-arith -Wdisabled-optimization -Wmissing-format-attribute
-	extended_cpp_warnings += -Wctor-dtor-privacy# < gcc 3
-# 	extended_cpp_warnings += -Wfloat-equal# gcc 3.0
+# C++ only
+extended_cpp_warnings += -Wnon-virtual-dtor -Wreorder -Wpointer-arith -Wdisabled-optimization -Wmissing-format-attribute
+extended_cpp_warnings += -Wctor-dtor-privacy# < gcc 3
+# extended_cpp_warnings += -Wfloat-equal# gcc 3.0
 
 # ------- above only warnings available in 3.0
 
 WEFFC_BROKEN:=0
- ifeq ('$(USE_GCC_47_OR_HIGHER)','yes')
-  ifneq ('$(USE_GCC_48_OR_HIGHER)','yes')
+ifeq ('$(USE_GCC_47_OR_HIGHER)','yes')
+ ifneq ('$(USE_GCC_48_OR_HIGHER)','yes')
 #  -Weffc++ broken in 4.7.x series
 # gcc 4.7.3 crashes on GenomeImport.cxx when -Weffc++ is active
 # (bug reported https://gcc.gnu.org/bugzilla/show_bug.cgi?id=56923; apparently wont be fixed for 4.7-series)
 # gcc 4.7.4 crashes on DBwriter.cxx when -Weffc++ is active
-   WEFFC_BROKEN:=1
-  endif
+  WEFFC_BROKEN:=1
  endif
- ifeq ('$(WEFFC_BROKEN)','0')
-	extended_cpp_warnings += -Weffc++# gcc 3.0.1
+endif
+ifeq ('$(WEFFC_BROKEN)','0')
+ extended_cpp_warnings += -Weffc++# gcc 3.0.1
+endif
+
+extended_cpp_warnings += -Wmissing-noreturn# gcc 3.0.2
+# extended_cpp_warnings += -Wold-style-cast# gcc 3.0.4 (warn about 28405 old-style casts)
+extended_cpp_warnings += -Winit-self# gcc 3.4.0
+extended_cpp_warnings += -Wstrict-aliasing# gcc 3.4
+extended_cpp_warnings += -Wextra# gcc 3.4.0
+
+ifeq ($(DEBUG),1)
+ ifeq ($(USE_CLANG),0)
+# turn off -Wmaybe-uninitialized in debug mode (gets activated with -Wextra). too many bogus warnings
+  extended_cpp_warnings += -Wno-maybe-uninitialized
  endif
-	extended_cpp_warnings += -Wmissing-noreturn# gcc 3.0.2
-#	extended_cpp_warnings += -Wold-style-cast# gcc 3.0.4 (warn about 28405 old-style casts)
-	extended_cpp_warnings += -Winit-self# gcc 3.4.0
-	extended_cpp_warnings += -Wstrict-aliasing# gcc 3.4
-	extended_cpp_warnings += -Wextra# gcc 3.4.0
- ifeq ($(DEBUG),1)
-  ifeq ($(USE_CLANG),0)
-#       turn off -Wmaybe-uninitialized in debug mode (gets activated with -Wextra). too many bogus warnings
-	extended_cpp_warnings += -Wno-maybe-uninitialized
-  endif
- endif
- ifeq ('$(USE_GCC_452_OR_HIGHER)','yes')
-	extended_cpp_warnings += -Wlogical-op# gcc 4.5.2
- endif
- ifeq ('$(USE_GCC_47_OR_HIGHER)','yes')
-#	extended_cpp_warnings += -Wunused-local-typedefs# gcc 4.7 (fails for each STATIC_ASSERT, enable only for Cxx11)
-#	extended_cpp_warnings += -Wzero-as-null-pointer-constant# gcc 4.7 #@@@ activate
- endif
- ifeq ('$(USE_GCC_48_OR_HIGHER)','yes')
-	extended_cpp_warnings += -Wunused-local-typedefs# available since gcc 4.7 (but fails for each STATIC_ASSERT, so enable only for Cxx11)
- endif
+endif
+ifeq ('$(USE_GCC_452_OR_HIGHER)','yes')
+ extended_cpp_warnings += -Wlogical-op# gcc 4.5.2
+endif
+ifeq ('$(USE_GCC_47_OR_HIGHER)','yes')
+# extended_cpp_warnings += -Wunused-local-typedefs# gcc 4.7 (fails for each STATIC_ASSERT, enable only for Cxx11)
+# extended_cpp_warnings += -Wzero-as-null-pointer-constant# gcc 4.7 #@@@ activate
+endif
+ifeq ('$(USE_GCC_48_OR_HIGHER)','yes')
+ extended_cpp_warnings += -Wunused-local-typedefs# available since gcc 4.7 (but fails for each STATIC_ASSERT, so enable only for Cxx11)
+endif
 
 #---------------------- turn off clang bogus warnings
 
@@ -342,26 +340,26 @@ ifeq ($(USE_CLANG),1)
 # -Wunused-private-field report too many false positives (currently ~ 2 of 3)
 # -Wstring-plus-int warns about common ARB coding practice
 # -Wgnu-static-float-init warns about accepted GNU extension
-	extended_cpp_warnings += -Wno-mismatched-tags -Wno-char-subscripts -Wno-unused-private-field -Wno-string-plus-int -Wno-gnu-static-float-init
+ extended_cpp_warnings += -Wno-mismatched-tags -Wno-char-subscripts -Wno-unused-private-field -Wno-string-plus-int -Wno-gnu-static-float-init
 endif
 
 #---------------------- developer
 
 ifneq ($(DEVELOPER),ANY) # ANY=default setting (skip all developer specific code)
-	dflags += -DDEVEL_$(DEVELOPER)# activate developer/release specific code
+ dflags += -DDEVEL_$(DEVELOPER)# activate developer/release specific code
 endif
 
 #---------------------- activate TODO warnings?
 
 ifndef SHOWTODO
  ifeq ($(DEVELOPER),RALF)
-	SHOWTODO:=1
+  SHOWTODO:=1
  else
-	SHOWTODO:=0
+  SHOWTODO:=0
  endif
 endif
 ifeq ($(SHOWTODO),1)
-	dflags += -DWARN_TODO# activate "TODO" warnings
+ dflags += -DWARN_TODO# activate "TODO" warnings
 endif
 
 #---------------------- activate Sanitizers?
@@ -436,7 +434,7 @@ endif
 #---------------------- 32 or 64 bit
 
 ifndef BUILDHOST_64
-	BUILDHOST_64:=$(ARB_64)# assume build host is same as version (see config.makefile)
+ BUILDHOST_64:=$(ARB_64)# assume build host is same as version (see config.makefile)
 endif
 
 cross_cflags:=
@@ -444,35 +442,35 @@ cross_lflags:=
 cross_clflags:=
 
 ifeq ($(ARB_64),1)
-	dflags += -DARB_64 #-fPIC
-	shared_cflags += -fPIC
+ dflags += -DARB_64 #-fPIC
+ shared_cflags += -fPIC
 
-	ifeq ($(BUILDHOST_64),1)
-#		build 64-bit ARB version on 64-bit host
-		CROSS_LIB:=# empty = autodetect below
-		ifeq ($(DARWIN),1)
-			cross_cflags  += -arch x86_64
-			cross_lflags  += -arch x86_64
-			cross_clflags += -arch x86_64
-		endif
-	else
-#		build 64-bit ARB version on 32-bit host
-		CROSS_LIB:=/lib64
-		cross_cflags += -m64
-		cross_lflags += -m64 -m elf_x86_64
-		cross_clflags += -m64 -Wl,-m64,-m,elf_x86_64
-	endif
+ ifeq ($(BUILDHOST_64),1)
+# build 64-bit ARB version on 64-bit host
+  CROSS_LIB:=# empty = autodetect below
+  ifeq ($(DARWIN),1)
+   cross_cflags  += -arch x86_64
+   cross_lflags  += -arch x86_64
+   cross_clflags += -arch x86_64
+  endif
+ else
+# build 64-bit ARB version on 32-bit host
+  CROSS_LIB:=/lib64
+  cross_cflags += -m64
+  cross_lflags += -m64 -m elf_x86_64
+  cross_clflags += -m64 -Wl,-m64,-m,elf_x86_64
+ endif
 else
-	ifeq ($(BUILDHOST_64),1)
-#		build 32-bit ARB version on 64-bit host
-		CROSS_LIB:=# empty = autodetect below
-		cross_cflags += -m32
-		cross_lflags += -m32 -m elf_i386
-		cross_clflags += -m32 -Wl,-m32,-m,elf_i386
-	else
-#		build 32-bit ARB version on 32-bit host
-		CROSS_LIB:=/lib
-	endif
+ ifeq ($(BUILDHOST_64),1)
+# build 32-bit ARB version on 64-bit host
+  CROSS_LIB:=# empty = autodetect below
+  cross_cflags += -m32
+  cross_lflags += -m32 -m elf_i386
+  cross_clflags += -m32 -Wl,-m32,-m,elf_i386
+ else
+# build 32-bit ARB version on 32-bit host
+  CROSS_LIB:=/lib
+ endif
 endif
 
 cflags  += $(cross_cflags)
@@ -480,37 +478,37 @@ clflags += $(cross_clflags)
 
 ifeq ('$(CROSS_LIB)','')
 # autodetect libdir
-	ifeq ($(ARB_64),1)
-		CROSS_LIB:=$(shell (test -d /lib64 && echo lib64) || echo lib)
-	else
-		CROSS_LIB:=$(shell (test -d /lib32 && echo lib32) || echo lib)
-	endif
+ ifeq ($(ARB_64),1)
+  CROSS_LIB:=$(shell (test -d /lib64 && echo lib64) || echo lib)
+ else
+  CROSS_LIB:=$(shell (test -d /lib32 && echo lib32) || echo lib)
+ endif
 endif
 
 #---------------------- unit tests
 
 ifndef UNIT_TESTS
-	UNIT_TESTS=0#default is "no tests"
+ UNIT_TESTS=0#default is "no tests"
 endif
 ifeq ($(UNIT_TESTS),1)
-	dflags += -DUNIT_TESTS
-	UNIT_TESTER_LIB=UNIT_TESTER/UNIT_TESTER.a
+ dflags += -DUNIT_TESTS
+ UNIT_TESTER_LIB=UNIT_TESTER/UNIT_TESTER.a
 else
-	UNIT_TESTER_LIB=
+ UNIT_TESTER_LIB=
 endif
 
 #---------------------- use gcov
 
 ifndef COVERAGE
-	COVERAGE=0#default is "no"
+ COVERAGE=0#default is "no"
 endif
 ifneq ($(COVERAGE),0)
-	GCOVFLAGS=-ftest-coverage -fprofile-arcs
-	cflags += $(GCOVFLAGS)
-	EXECLIBS=-lgcov
+ GCOVFLAGS=-ftest-coverage -fprofile-arcs
+ cflags += $(GCOVFLAGS)
+ EXECLIBS=-lgcov
 else
-	GCOVFLAGS=
-	EXECLIBS=
+ GCOVFLAGS=
+ EXECLIBS=
 endif
 
 #---------------------- other flags
@@ -518,9 +516,9 @@ endif
 dflags += -D$(MACH) # define machine
 
 ifeq ($(DARWIN),1)
-	shared_cflags += -fno-common
+ shared_cflags += -fno-common
 else
-	dflags +=  $(shell getconf LFS_CFLAGS)
+ dflags +=  $(shell getconf LFS_CFLAGS)
 endif
 
 cflags += -pipe
@@ -577,25 +575,25 @@ endif
 #---------------------- X11 location
 
 ifeq ($(DARWIN),1)
-	XHOME:=$(PREFIX)
+ XHOME:=$(PREFIX)
 else
  ifeq ($(DEBIAN),1)
-	XHOME:=$(PREFIX)
+  XHOME:=$(PREFIX)
  else
-	XHOME:=/usr/X11R6
+  XHOME:=/usr/X11R6
  endif
 endif
 
 XINCLUDES ?= -I$(XHOME)/include
 XLIBS     ?= -L$(XHOME)/$(CROSS_LIB)
 ifeq ($(DARWIN),1)
-	XINCLUDES += -I$(OSX_FW)/GLUT.framework/Headers -I$(OSX_FW)/OpenGL.framework/Headers -I$(OSX_SDK)/usr/include/krb5
+ XINCLUDES += -I$(OSX_FW)/GLUT.framework/Headers -I$(OSX_FW)/OpenGL.framework/Headers -I$(OSX_SDK)/usr/include/krb5
 
-	XLIBS += -lXm -lpng -lz -lXt -lX11 -lXext -lXp -lXmu -lXi
-	XLIBS += -Wl,-dylib_file,$(OSX_FW_OPENGL)/libGL.dylib:$(OSX_FW_OPENGL)/libGL.dylib
-	XLIBS += -Wl,-dylib_file,$(OSX_FW_OPENGL)/libGLU.dylib:$(OSX_FW_OPENGL)/libGLU.dylib
+ XLIBS += -lXm -lpng -lz -lXt -lX11 -lXext -lXp -lXmu -lXi
+ XLIBS += -Wl,-dylib_file,$(OSX_FW_OPENGL)/libGL.dylib:$(OSX_FW_OPENGL)/libGL.dylib
+ XLIBS += -Wl,-dylib_file,$(OSX_FW_OPENGL)/libGLU.dylib:$(OSX_FW_OPENGL)/libGLU.dylib
 else
-	XLIBS += -lXm -lXpm -lXt -lXext -lX11
+ XLIBS += -lXm -lXpm -lXt -lXext -lX11
 endif
 
 dflags += -DARB_MOTIF
@@ -603,38 +601,35 @@ dflags += -DARB_MOTIF
 #---------------------- open GL
 
 ifeq ($(OPENGL),1)
-	cflags += -DARB_OPENGL # activate OPENGL code
-	GL     := gl # this is the name of the OPENGL base target
-	GL_LIB_SYS := -lGL -lGLU
-	GL_LIB_ARB := -L$(ARBHOME)/GL/glAW -lglAW
+ cflags += -DARB_OPENGL # activate OPENGL code
+ GL     := gl # this is the name of the OPENGL base target
+ GL_LIB_SYS := -lGL -lGLU
+ GL_LIB_ARB := -L$(ARBHOME)/GL/glAW -lglAW
 
-        ifeq ($(DARWIN),1)
-	        GL_LIB_SYS += -lpthread
-        endif
+ ifeq ($(DARWIN),1)
+  GL_LIB_SYS += -lpthread
+ endif
 
-        GL_PNGLIBS_ARB := -L$(ARBHOME)/GL/glpng -lglpng_arb
-        GL_PNGLIBS_SYS := -lpng
+ GL_PNGLIBS_ARB := -L$(ARBHOME)/GL/glpng -lglpng_arb
+ GL_PNGLIBS_SYS := -lpng
 
-        GLEWLIB := -lGLEW -lGLw
-	ifeq ($(DARWIN),1)
-		GLUTLIB := -glut
-	else
-		GLUTLIB := -lglut
-	endif
+ GLEWLIB := -lGLEW -lGLw
+ ifeq ($(DARWIN),1)
+  GLUTLIB := -glut
+ else
+  GLUTLIB := -lglut
+ endif
 
-        GL_LIBS_SYS := $(GL_LIB_SYS) $(GL_PNGLIBS_SYS) $(GLEWLIB) $(GLUTLIB)
-        GL_LIBS_ARB := $(GL_LIB_ARB) $(GL_PNGLIBS_ARB)
+ GL_LIBS_SYS := $(GL_LIB_SYS) $(GL_PNGLIBS_SYS) $(GLEWLIB) $(GLUTLIB)
+ GL_LIBS_ARB := $(GL_LIB_ARB) $(GL_PNGLIBS_ARB)
 
-        RNA3D_LIB := RNA3D/RNA3D.a
-
+ RNA3D_LIB := RNA3D/RNA3D.a
 else
+ GL_LIBS_ARB:=# no opengl -> no libs
+ GL_LIBS_SYS:=# no opengl -> no libs
+ GL:=# don't build ARB openGL libs
 
-        GL_LIBS_ARB:=# no opengl -> no libs
-        GL_LIBS_SYS:=# no opengl -> no libs
-        GL:=# don't build ARB openGL libs
-
-        RNA3D_LIB :=
-
+ RNA3D_LIB :=
 endif
 
 RNA3D_LIB_4_DEPENDS := RNA3D/RNA3D.a
@@ -659,28 +654,27 @@ ARB_GLIB_LIBS:=$(strip    $(shell pkg-config --libs   $(ARB_NEEDED_GLIB)))
 #---------------------- basic libs:
 
 SYSLIBS:=
-
 ifeq ($(DARWIN),1)
-	SYSLIBS += -lstdc++ 
+ SYSLIBS += -lstdc++
 else
-	SYSLIBS += -lm $(ARB_GLIB_LIBS)
+ SYSLIBS += -lm $(ARB_GLIB_LIBS)
 endif
 
 #---------------------- include symbols?
 
 ifeq ($(TRACESYM),1)
-	ifeq ($(USE_CLANG),0)
-		cflags  += -rdynamic
-		clflags += -rdynamic -Wl,--export-dynamic
-	endif
+ ifeq ($(USE_CLANG),0)
+  cflags  += -rdynamic
+  clflags += -rdynamic -Wl,--export-dynamic
+ endif
 endif
 
 #---------------------- system dependent commands
 
 ifeq ($(DARWIN),1)
-	TIME:=gtime
+ TIME:=gtime
 else
-	TIME:=/usr/bin/time
+ TIME:=/usr/bin/time
 endif
 
 #---------------------- SSE vectorizer
@@ -707,20 +701,18 @@ endif
 ifeq ($(DEBUG),0)
  ifeq ($(USE_GCC_49_OR_HIGHER),yes)
   ifeq ($(DISABLE_VECTORIZE_CHECK),0)
-#	cflags += -fopt-info
-	cflags += -fopt-info-vec
-
-#	Shows reasons for unsuccessful vectorization:
-#	cflags += -fopt-info-vec-missed
-
-	POST_COMPILE += --check-loop-optimization
+#  cflags += -fopt-info
+   cflags += -fopt-info-vec
+#  Shows reasons for unsuccessful vectorization:
+#  cflags += -fopt-info-vec-missed
+   POST_COMPILE += --check-loop-optimization
   endif
  else
   ifeq ($(USE_GCC_48_OR_HIGHER),yes)
 # no automatic vectorization-check for gcc<4.9.0
 # -> uncomment the next 2 lines and grep the spam it will produce for 'vectorized.*loops'
-#	cflags += -fopt-info -fopt-info-vec-missed
-#	POST_COMPILE += --original
+#  cflags += -fopt-info -fopt-info-vec-missed
+#  POST_COMPILE += --original
   endif
  endif
 endif
@@ -739,9 +731,9 @@ endif
 
 # executables:
 ifeq ($(DARWIN),1)
-blflags:=$(clflags)
+ blflags:=$(clflags)
 else
-blflags:=$(clflags) -Wl,--no-undefined
+ blflags:=$(clflags) -Wl,--no-undefined
 endif
 
 # shared libraries
@@ -751,8 +743,8 @@ llflags:=$(clflags)
 clflags:=
 
 # -------------------------------------------------------------------------
-#	Don't put any machine/version/etc conditionals below!
-#	(instead define variables above)
+#       Don't put any machine/version/etc conditionals below!
+#       (instead define variables above)
 # -------------------------------------------------------------------------
 
 cflags += -W -Wall $(dflags) $(extended_warnings)
@@ -760,18 +752,18 @@ cxxflags := $(extended_cpp_warnings)
 
 # add CFLAGS + CPPFLAGS from environment for DEBIAN build
 ifeq ($(DEBIAN),1)
-	cflags := $(CFLAGS) $(cflags)
-	cxxflags += $(CPPFLAGS)
+ cflags := $(CFLAGS) $(cflags)
+ cxxflags += $(CPPFLAGS)
 endif
 
 ifeq ('$(USE_GCC_47_OR_HIGHER)','yes')
-cxxflags += -std=gnu++11# see also TEMPLATES/cxxforward.h@USE_Cxx11
+ cxxflags += -std=gnu++11# see also TEMPLATES/cxxforward.h@USE_Cxx11
 else
 # only use for gcc versions between 4.3 and <4.7 (4.7++ adds -Wc++11-compat above)
-HAVE_GNUPP0X=`SOURCE_TOOLS/requireVersion.pl 4.3 $(COMPILER_VERSION)`
+ HAVE_GNUPP0X=`SOURCE_TOOLS/requireVersion.pl 4.3 $(COMPILER_VERSION)`
  ifeq ($(HAVE_GNUPP0X),1)
 # ensure compatibility with upcoming C++ standard
-cxxflags += -std=gnu++0x
+  cxxflags += -std=gnu++0x
  endif
 endif
 
@@ -779,17 +771,17 @@ LINK_STATIC_LIB := ar -csq# link static lib
 LINK_EXECUTABLE := $(A_CXX) $(blflags) -o# link executable (c++)
 
 ifeq ($(LINK_STATIC),1)
-SHARED_LIB_SUFFIX = a# static lib suffix
-LINK_SHARED_LIB := $(LINK_STATIC_LIB)
+ SHARED_LIB_SUFFIX = a# static lib suffix
+ LINK_SHARED_LIB := $(LINK_STATIC_LIB)
 else
-SHARED_LIB_SUFFIX = so# shared lib suffix
-LINK_SHARED_LIB := $(A_CXX) $(llflags) -shared $(GCOVFLAGS) -o# link shared lib
+ SHARED_LIB_SUFFIX = so# shared lib suffix
+ LINK_SHARED_LIB := $(A_CXX) $(llflags) -shared $(GCOVFLAGS) -o# link shared lib
 endif
 
 ifeq ($(DARWIN),1)
-lflags4perl:=
+ lflags4perl:=
 else
-lflags4perl:=$(cross_lflags) -shared
+ lflags4perl:=$(cross_lflags) -shared
 endif
 
 # delete variables unused below
@@ -812,8 +804,8 @@ LIBS = $(ARBDB_LIB) $(SYSLIBS)
 
 GUI_LIBS_PREFIX:=
 ifeq ($(DARWIN),1)
-#       this seem to be added at wrong place, since opengl is only needed to link EDIT4
-        GUI_LIBS_PREFIX:=-framework GLUT -framework OpenGL
+# this seem to be added at wrong place, since opengl is only needed to link EDIT4
+ GUI_LIBS_PREFIX:=-framework GLUT -framework OpenGL
 endif
 
 GUI_LIBS=$(GUI_LIBS_PREFIX) $(LIBS) -lAWT -lWINDOW
@@ -833,24 +825,24 @@ MAKEDEPENDFLAGS := -- -DARB_OPENGL -DUNIT_TESTS -D__cplusplus -I. -Y$(ARBHOME)/I
 
 ifeq ($(PTPAN),1)
 # PTPAN only libs
-ARCHS_PT_SERVER = \
+ ARCHS_PT_SERVER = \
 	ptpan/PROBE.a
 else
-ifeq ($(PTPAN),2)
+ ifeq ($(PTPAN),2)
 # special mode to compile both servers (developers only!)
-ARCHS_PT_SERVER = \
+  ARCHS_PT_SERVER = \
 	ptpan/PROBE.a \
 	PROBE/PROBE.a
-ARCHS_PT_SERVER_LINK = PROBE/PROBE.a# default to old ptserver
-else
+  ARCHS_PT_SERVER_LINK = PROBE/PROBE.a# default to old ptserver
+ else
 # PT-server only libs
-ARCHS_PT_SERVER = \
+  ARCHS_PT_SERVER = \
 	PROBE/PROBE.a
-endif
+ endif
 endif
 
 ifndef ARCHS_PT_SERVER_LINK
-ARCHS_PT_SERVER_LINK = $(ARCHS_PT_SERVER)
+ ARCHS_PT_SERVER_LINK = $(ARCHS_PT_SERVER)
 endif
 
 # ---------------------------------------
