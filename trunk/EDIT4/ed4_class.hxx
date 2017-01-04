@@ -1040,12 +1040,7 @@ public:
     inline void set_update();
     virtual void update_requested_children() = 0;
 
-    virtual ED4_returncode  move_requested_by_parent(ED4_move_info *mi)      = 0;
     virtual ED4_returncode  event_sent_by_parent(AW_event *event, AW_window *aww);
-    virtual ED4_returncode  move_requested_by_child(ED4_move_info *moveinfo) = 0;
-
-
-    virtual ED4_returncode  handle_move(ED4_move_info *moveinfo) = 0;
 
     virtual ARB_ERROR route_down_hierarchy(const ED4_route_cb& cb);
 
@@ -1061,7 +1056,7 @@ public:
 
     ED4_AREA_LEVEL get_area_level(ED4_multi_species_manager **multi_species_manager=0) const; // returns area we belong to and the next multi species manager of the area
 
-    ED4_base *get_parent(ED4_level lev) const;
+    inline ED4_manager *get_parent(ED4_level lev) const;
     void unlink_from_parent();
     bool has_parent(ED4_manager *Parent);
     bool is_child_of(ED4_manager *Parent) { return has_parent(Parent); }
@@ -1075,17 +1070,14 @@ public:
     char *get_name_of_species();                      // go from terminal to name of species
 
     // functions which refer to the selected object(s), i.e. across the hierarchy
-    virtual ED4_base        *get_competent_child(AW_pos x, AW_pos y, ED4_properties relevant_prop)=0;
-    virtual ED4_base        *get_competent_clicked_child(AW_pos x, AW_pos y, ED4_properties relevant_prop)=0;
-    virtual ED4_base        *search_spec_child_rek(ED4_level level);    // recursive search for level
 
     ED4_terminal        *get_next_terminal();
     ED4_terminal        *get_prev_terminal();
 
     void generate_configuration_string(GBS_strstruct& buffer);
 
-    virtual ED4_returncode  remove_callbacks();
-    
+    virtual void remove_callbacks() = 0;
+
     const ED4_terminal *get_consensus_relevant_terminal() const;
 
     ED4_base(const ED4_objspec& spec_, GB_CSTR id, AW_pos width, AW_pos height, ED4_manager *parent);
@@ -1240,7 +1232,7 @@ public:
     void delete_requested_children() OVERRIDE;
     void Delete() OVERRIDE;
 
-    ED4_returncode  move_requested_by_parent(ED4_move_info *mi) OVERRIDE;
+    ED4_returncode  move_requested_by_parent(ED4_move_info *mi);
 
     void create_consensus(ED4_abstract_group_manager *upper_group_manager, arb_progress *progress);
 
@@ -1249,7 +1241,7 @@ public:
     ED4_base *find_first_that(ED4_level level, const ED4_basePredicate& fulfills_predicate);
 
      // bottom-up functions
-    ED4_returncode  move_requested_by_child(ED4_move_info *moveinfo) OVERRIDE;
+    ED4_returncode  move_requested_by_child(ED4_move_info *moveinfo);
     inline void resize_requested_by_child();
     ED4_returncode  refresh_requested_by_child();
     void delete_requested_by_child();
@@ -1273,15 +1265,15 @@ public:
     ED4_returncode  update_bases_and_rebuild_consensi(const char *old_seq, int old_len, ED4_base *species, ED4_update_flag update_flag, PosRange range = PosRange::whole());
 
     // handle moves across the hierarchy
-    ED4_returncode  handle_move(ED4_move_info *moveinfo) OVERRIDE;
+    ED4_returncode  handle_move(ED4_move_info *moveinfo);
 
-    ED4_base *get_competent_child(AW_pos x, AW_pos y, ED4_properties relevant_prop) OVERRIDE;
-    ED4_base *get_competent_clicked_child(AW_pos x, AW_pos y, ED4_properties relevant_prop) OVERRIDE;
-    ED4_base *search_spec_child_rek(ED4_level level) OVERRIDE;           // recursive search for level
+    ED4_base *get_competent_child(AW_pos x, AW_pos y, ED4_properties relevant_prop);
+    ED4_base *get_competent_clicked_child(AW_pos x, AW_pos y, ED4_properties relevant_prop);
+    ED4_base *search_spec_child_rek(ED4_level level); // recursive search for level
 
     // general purpose functions
     ED4_base        *search_ID(const char *id) OVERRIDE;
-    ED4_returncode  remove_callbacks() OVERRIDE;
+    void  remove_callbacks() OVERRIDE;
 
     ED4_terminal *get_first_terminal(int start_index=0) const;
     ED4_terminal *get_last_terminal(int start_index=-1) const;
@@ -1332,12 +1324,7 @@ public:
     void delete_requested_children() OVERRIDE;
     void Delete() OVERRIDE;
 
-    ED4_returncode  move_requested_by_parent(ED4_move_info *mi) OVERRIDE;
-    ED4_returncode  event_sent_by_parent(AW_event *event, AW_window *aww) OVERRIDE;
-    ED4_base *get_competent_child(AW_pos x, AW_pos y, ED4_properties relevant_prop) OVERRIDE;
-    ED4_base *get_competent_clicked_child(AW_pos x, AW_pos y, ED4_properties relevant_prop) OVERRIDE;
-    ED4_returncode  move_requested_by_child(ED4_move_info *moveinfo) OVERRIDE;
-    ED4_returncode  handle_move(ED4_move_info *moveinfo) OVERRIDE;
+    ED4_returncode event_sent_by_parent(AW_event *event, AW_window *aww) OVERRIDE;
 
     ED4_returncode kill_object();
 
@@ -1345,7 +1332,7 @@ public:
     ED4_base *search_ID(const char *id) OVERRIDE;
     char          *resolve_pointer_to_string_copy(int *str_len = 0) const OVERRIDE;
     const char    *resolve_pointer_to_char_pntr(int *str_len = 0) const OVERRIDE;
-    ED4_returncode remove_callbacks() OVERRIDE;
+    void remove_callbacks() OVERRIDE;
 
     GB_ERROR write_sequence(const char *seq, int seq_len);
 
@@ -1835,6 +1822,15 @@ public:
 
     ED4_species_name_terminal *get_name_terminal() const { return member(0)->to_species_name_terminal(); }
 };
+
+inline ED4_manager *ED4_base::get_parent(ED4_level lev) const {
+    ED4_manager *temp_parent = parent;
+    while (temp_parent && !(temp_parent->spec.level & lev)) {
+        temp_parent = temp_parent->parent;
+    }
+    return temp_parent;
+}
+
 
 inline ED4_species_manager *ED4_base::containing_species_manager() const {
     ED4_base *sman = get_parent(LEV_SPECIES);

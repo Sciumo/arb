@@ -385,20 +385,11 @@ ED4_returncode ED4_manager::update_bases(const BaseFrequencies *old_table, const
 
 #undef WITH_ALL_ABOVE_GROUP_MANAGER_TABLES
 
-ED4_returncode ED4_manager::remove_callbacks() {
+void ED4_manager::remove_callbacks() {
     // removes callbacks
-    int i;
-
-    for (i=0; i < members(); i++) {
-        if (member(i)->is_terminal()) {
-            member(i)->to_terminal()->remove_callbacks();
-        }
-        else {
-            member(i)->to_manager()->remove_callbacks();
-        }
+    for (int i=0; i < members(); i++) {
+        member(i)->remove_callbacks();
     }
-
-    return ED4_R_OK;
 }
 
 void ED4_manager::update_consensus(ED4_manager *old_parent, ED4_manager *new_parent, ED4_base *sequence) {
@@ -611,7 +602,7 @@ ED4_returncode  ED4_manager::handle_move(ED4_move_info *mi) {
 }
 
 
-ED4_returncode  ED4_manager::move_requested_by_parent(ED4_move_info *mi) {
+ED4_returncode ED4_manager::move_requested_by_parent(ED4_move_info *mi) {
     // handles a move request with target world coordinates coming from parent
     if ((mi == NULL) || !(in_border(mi->end_x, mi->end_y, mi->mode)))
         return (ED4_R_IMPOSSIBLE);
@@ -623,8 +614,6 @@ ED4_returncode  ED4_manager::move_requested_by_parent(ED4_move_info *mi) {
 ED4_returncode  ED4_manager::move_requested_by_child(ED4_move_info *mi) {
     // handles a move request coming from a child,
     // target location can be out of borders
-    ED4_base *temp_parent = NULL;
-
     if (mi == NULL)
         return (ED4_R_IMPOSSIBLE);
 
@@ -637,7 +626,7 @@ ED4_returncode  ED4_manager::move_requested_by_child(ED4_move_info *mi) {
 
         if (parent == NULL) return (ED4_R_WARNING);
 
-        return (parent->move_requested_by_child(mi));
+        return parent->move_requested_by_child(mi);
     }
 
     if (!(in_border(mi->end_x, mi->end_y, mi->mode))) {
@@ -647,13 +636,13 @@ ED4_returncode  ED4_manager::move_requested_by_child(ED4_move_info *mi) {
         // target location is not within borders =>
         // ask parent, i.e. move recursively up
         if (parent == NULL) return (ED4_R_WARNING);
-        return (parent->move_requested_by_child(mi));
+        return parent->move_requested_by_child(mi);
     }
     else { // target location within current borders = > handle move myself
-        temp_parent = get_competent_clicked_child(mi->end_x, mi->end_y, PROP_IS_MANAGER);
+        ED4_base *temp_parent = get_competent_clicked_child(mi->end_x, mi->end_y, PROP_IS_MANAGER);
 
         if (!temp_parent) {
-            return (handle_move(mi));
+            return handle_move(mi);
         }
         else {
             if ((temp_parent->is_group_manager()) || (temp_parent->is_area_manager())) {
@@ -665,7 +654,7 @@ ED4_returncode  ED4_manager::move_requested_by_child(ED4_move_info *mi) {
             if (!temp_parent) {
                 return ED4_R_IMPOSSIBLE;
             }
-            return (temp_parent->handle_move(mi));
+            return temp_parent->to_manager()->handle_move(mi);
         }
     }
 }
@@ -1335,10 +1324,10 @@ void ED4_multi_species_manager::set_species_counters(int no_of_species, int no_o
         species          = no_of_species;
         selected_species = no_of_selected;
 
-        ED4_base *gm = get_parent(LEV_GROUP);
-        if (gm) gm->to_manager()->search_spec_child_rek(LEV_BRACKET)->request_refresh();
+        ED4_manager *gm = get_parent(LEV_GROUP);
+        if (gm) gm->search_spec_child_rek(LEV_BRACKET)->request_refresh();
 
-        ED4_base *ms = get_parent(LEV_MULTI_SPECIES);
+        ED4_manager *ms = get_parent(LEV_MULTI_SPECIES);
         if (ms) {
             ED4_multi_species_manager *parent_multi_species_man = ms->to_multi_species_manager();
 

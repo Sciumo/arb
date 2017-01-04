@@ -542,7 +542,7 @@ static bool multi_species_man_consensus_id_starts_with(ED4_base *base, const cha
     ED4_base                  *consensus = ms_man->search_spec_child_rek(LEV_SPECIES);
 
     if (consensus) {
-        ED4_base *consensus_name = consensus->search_spec_child_rek(LEV_SPECIES_NAME);
+        ED4_base *consensus_name = consensus->to_manager()->search_spec_child_rek(LEV_SPECIES_NAME);
 
         if (consensus_name) {
             if (strncmp(consensus_name->id, start, strlen(start))==0) {

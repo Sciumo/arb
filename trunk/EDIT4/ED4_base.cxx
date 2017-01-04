@@ -19,7 +19,7 @@
 
 ED4_group_manager *ED4_base::is_in_folded_group() const {
     if (!parent) return NULL;
-    ED4_base *group = get_parent(LEV_GROUP);
+    ED4_manager *group = get_parent(LEV_GROUP);
     if (!group) return NULL;
     if (group->has_property(PROP_IS_FOLDED)) return group->to_group_manager();
     return group->is_in_folded_group();
@@ -432,18 +432,9 @@ int ED4_base::calc_group_depth() {
     return cntr; // don't count our own group
 }
 
-ED4_returncode ED4_base::remove_callbacks() // removes callbacks
-{
-    return ED4_R_IMPOSSIBLE;
-}
-
-
-ED4_base *ED4_base::search_spec_child_rek(ED4_level level) { // recursive search for level
-    return spec.level&level ? this : NULL;
-}
-
 ED4_base *ED4_manager::search_spec_child_rek(ED4_level level) {
-    if (spec.level & level) return this;
+    // if (spec.level & level) return this; // old behavior (unwanted)
+    e4_assert(!(spec.level & level)); // if this fails, the old behavior was used => behavior of this call did change!
 
     for (int i=0; i<members(); i++) { // first check children
         if (member(i)->spec.level & level) {
@@ -452,9 +443,9 @@ ED4_base *ED4_manager::search_spec_child_rek(ED4_level level) {
     }
 
     for (int i=0; i<members(); i++) {
-        ED4_base *result = member(i)->search_spec_child_rek(level);
-        if (result) {
-            return result;
+        if (member(i)->is_manager()) {
+            ED4_base *result = member(i)->to_manager()->search_spec_child_rek(level);
+            if (result) return result;
         }
     }
 
@@ -685,17 +676,6 @@ int ED4_multi_species_manager::count_visible_children() // is called by a multi_
 }
 
 
-
-ED4_base *ED4_base::get_parent(ED4_level lev) const
-{
-    ED4_base *temp_parent = this->parent;
-
-    while (temp_parent && !(temp_parent->spec.level & lev)) {
-        temp_parent = temp_parent->parent;
-    }
-
-    return temp_parent;
-}
 
 void ED4_base::unlink_from_parent() {
     e4_assert(parent);
