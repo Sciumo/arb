@@ -474,7 +474,7 @@ ED4_base* ED4_manager::get_competent_clicked_child(AW_pos x, AW_pos y, ED4_prope
     }
 }
 
-ED4_returncode  ED4_manager::handle_move(ED4_move_info *mi) {
+ED4_returncode ED4_manager::handle_move(ED4_move_info *mi) {
     // handles a move request with target world
     // coordinates within current object's borders
 
@@ -607,7 +607,7 @@ ED4_returncode ED4_manager::move_requested_by_parent(ED4_move_info *mi) {
     if ((mi == NULL) || !(in_border(mi->end_x, mi->end_y, mi->mode)))
         return (ED4_R_IMPOSSIBLE);
 
-    return (handle_move(mi));
+    return handle_move(mi);
 }
 
 
@@ -659,7 +659,7 @@ ED4_returncode  ED4_manager::move_requested_by_child(ED4_move_info *mi) {
     }
 }
 
-ED4_returncode  ED4_manager::event_sent_by_parent(AW_event *event, AW_window *aww) {
+ED4_returncode ED4_manager::event_sent_by_parent(AW_event *event, AW_window *aww) {
     // handles an input event coming from parent
     if (flag.hidden) {
         return ED4_R_BREAK;

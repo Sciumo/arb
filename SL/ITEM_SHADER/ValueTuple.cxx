@@ -377,7 +377,7 @@ public:
     ShadedValue mix(float, const ValueTuple& other) const OVERRIDE { return other.clone(); }
 };
 
-class LinearTuple: public ValueTuple {
+class LinearTuple FINAL_TYPE : public ValueTuple {
     float val;
 
 public:
@@ -413,7 +413,7 @@ inline float mix_floats(float me, float my_ratio, float other) {
     return my_ratio*me + (1-my_ratio)*other;
 }
 
-class PlanarTuple: public ValueTuple {
+class PlanarTuple FINAL_TYPE : public ValueTuple {
     float val1, val2;
 
 public:
@@ -451,7 +451,7 @@ public:
     ShadedValue mix(float my_ratio, const ValueTuple& other) const OVERRIDE { return other.reverse_mix(my_ratio, *this); }
 };
 
-class SpatialTuple: public ValueTuple {
+class SpatialTuple FINAL_TYPE : public ValueTuple {
     float val1, val2, val3;
 
 public:

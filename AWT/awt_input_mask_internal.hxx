@@ -285,7 +285,7 @@ public:
 //  ------------------------
 //      class awt_script
 //
-class awt_script : public awt_mask_item {
+class awt_script FINAL_TYPE : public awt_mask_item {
 private:
     std::string script;
 
@@ -340,7 +340,7 @@ public:
 //  ---------------------------------
 //      class awt_script_viewport
 //
-class awt_script_viewport : public awt_viewport, public awt_linked_to_item { // derived from a Noncopyable
+class awt_script_viewport FINAL_TYPE : public awt_viewport, public awt_linked_to_item { // derived from a Noncopyable
 private:
     const awt_script *script;
     int               field_width;
@@ -374,8 +374,8 @@ private:
     GB_TYPES     db_type;       // type of database field
     bool         in_destructor;
 
-    GB_ERROR add_db_callbacks() OVERRIDE;
-    void     remove_db_callbacks() OVERRIDE;
+    GB_ERROR add_db_callbacks() FINAL_OVERRIDE;
+    void     remove_db_callbacks() FINAL_OVERRIDE;
 
     static std::string generate_baseName(const awt_input_mask_global& global_, const std::string& child_path) {
         // the generated name is enumerated to allow different awt_input_handler's to be linked
@@ -389,8 +389,8 @@ public:
     awt_input_handler(awt_input_mask_global& global_, const std::string& child_path_, GB_TYPES type_, const std::string& label_);
     ~awt_input_handler() OVERRIDE;
 
-    GB_ERROR link_to(GBDATA *gb_new_item) OVERRIDE; // link to a new item
-    GB_ERROR relink() OVERRIDE { return link_to(mask_global().get_selected_item()); }
+    GB_ERROR link_to(GBDATA *gb_new_item) FINAL_OVERRIDE; // link to a new item
+    GB_ERROR relink() FINAL_OVERRIDE { return link_to(mask_global().get_selected_item()); }
 
     GBDATA *data() { return gbd; }
 
@@ -420,7 +420,7 @@ public:
     ~awt_string_handler() OVERRIDE {}
 
     void awar_changed() OVERRIDE;
-    void db_changed() OVERRIDE;
+    void db_changed() FINAL_OVERRIDE;
 
     virtual std::string awar2db(const std::string& awar_content) const { return awar_content; }
     virtual std::string db2awar(const std::string& db_content) const { return db_content; }
@@ -544,7 +544,7 @@ public:
 // awt_input_mask holds the description of an input mask.
 // an input mask is an i/o-interface to a database entry.
 
-class awt_input_mask : virtual Noncopyable {
+class awt_input_mask FINAL_TYPE : virtual Noncopyable {
 private:
     awt_input_mask_global  global;
     awt_mask_item_list     handlers;

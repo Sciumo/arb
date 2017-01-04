@@ -87,7 +87,9 @@ public:
     GB_ERROR linkToDB(int *zombies, int *duplicates) __ATTR__USERESULT;
     void unlinkFromDB(); // @@@ is (but should not be) unused
 };
-
+MARK_NONFINAL_CLASS(ARB_seqtree_root);
+MARK_NONFINAL_METHOD(ARB_seqtree_root,GB_ERROR,loadFromDB,(const char*));
+MARK_NONFINAL_METHOD(ARB_seqtree_root,GB_ERROR,saveToDB,());
 
 struct ARB_tree_info {
     size_t leafs;

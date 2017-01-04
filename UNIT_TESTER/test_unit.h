@@ -579,7 +579,7 @@ namespace arb_test {
     template <typename T> inline bool more(const copy<T>& t1, const copy<T>& t2) { return t1 > t2; }
 
     template <typename T>
-    class matchable_value : public matchable //! matchable for values
+    class matchable_value FINAL_TYPE : public matchable //! matchable for values
     {
         copy<T>      val;
         mutable str  readable;
@@ -649,7 +649,7 @@ namespace arb_test {
 
         const matchable_value<T>& get_expected() const { return expected; }
 
-        bool matches(const matchable& thing) const OVERRIDE {
+        bool matches(const matchable& thing) const FINAL_OVERRIDE {
             const matchable_value<T>& value_thing = dynamic_cast<const matchable_value<T>&>(thing);
             return matches(value_thing.value(), expected.value());
         }
@@ -872,7 +872,7 @@ namespace arb_test {
         }
     };
 
-    class group_matcher : public matcher //! matches expectation_group for degree of fulfilledness
+    class group_matcher FINAL_TYPE : public matcher //! matches expectation_group for degree of fulfilledness
     {
         int min, max;
         group_matcher(int min_, int max_) : min(min_), max(max_) {}

@@ -318,7 +318,7 @@ inline void check_TODO(const char *, const Reader&) { }
 // ----------------------------
 //      class Section
 
-class Section : public MessageAttachable {
+class Section FINAL_TYPE : public MessageAttachable {
     SectionType type;
     string      name;
     Ostrings    content;
@@ -877,7 +877,7 @@ static size_t scanMinIndentation(const string& text) {
 // -----------------------------
 //      class ParagraphTree
 
-class ParagraphTree : public MessageAttachable, virtual Noncopyable {
+class ParagraphTree FINAL_TYPE : public MessageAttachable, virtual Noncopyable {
     ParagraphTree *brother;     // has same indentation as this
     ParagraphTree *son;         // indentation + 1
 

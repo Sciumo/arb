@@ -68,7 +68,7 @@ struct MITuple {
     double MI;
 };
 
-class Cma {
+class Cma FINAL_TYPE {
 
 private:
     /**

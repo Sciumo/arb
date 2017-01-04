@@ -23,7 +23,7 @@
 #include <arbtools.h>
 #endif
 
-class AlignedSequenceLoader : virtual Noncopyable {
+class AlignedSequenceLoader FINAL_TYPE : virtual Noncopyable {
 
 private:
     /**

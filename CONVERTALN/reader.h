@@ -60,6 +60,7 @@ public:
             ++(*this);
     }
 };
+MARK_NONFINAL_DTOR(Reader); // silence weird suggestion to make Reader-dtor final
 
 inline const char *shorttimekeep(char *heapcopy) { RETURN_LOCAL_ALLOC(heapcopy); }
 inline const char *shorttimecopy(const char *nocopy) { return shorttimekeep(nulldup(nocopy)); }
@@ -99,7 +100,13 @@ struct Writer {
     virtual const char *name() const = 0;
 
     virtual void throw_write_error() const __ATTR__NORETURN;
-    virtual int out(const char *text);
+    virtual int out(const char *text) {
+        int i = 0;
+        while (text[i]) {
+            out(text[i++]);
+        }
+        return i;
+    }
     virtual int outf(const char *format, ...) __ATTR__FORMAT_MEMBER(1);
 
     void repeated(char ch, int repeat) { while (repeat--) out(ch); }
@@ -123,7 +130,10 @@ public:
     FILE *get_FILE() { return ofp; }
 
     bool ok() const OVERRIDE { return ofp != NULL; }
-    void out(char ch) OVERRIDE;
+    void out(char ch) FINAL_OVERRIDE {
+        if (fputc(ch, ofp) == EOF) throw_write_error();
+    }
+
     const char *name() const OVERRIDE { return filename; }
 
     int out(const char *text) OVERRIDE { return Writer::out(text); }
@@ -134,6 +144,7 @@ public:
 
     void expect_written();
 };
+MARK_NONFINAL_CLASS(FileWriter);
 
 #else
 #error reader.h included twice

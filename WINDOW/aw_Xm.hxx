@@ -5,7 +5,7 @@
 #include "aw_common_xm.hxx"
 #endif
 
-class AW_device_Xm : public AW_device {
+class AW_device_Xm FINAL_TYPE : public AW_device {
     bool line_impl(int gc, const AW::LineVector& Line, AW_bitset filteri) OVERRIDE;
     bool text_impl(int gc, const char *str, const AW::Position& pos, AW_pos alignment, AW_bitset filteri, long opt_strlen) OVERRIDE;
     bool box_impl(int gc, AW::FillStyle filled, const AW::Rectangle& rect, AW_bitset filteri) OVERRIDE;

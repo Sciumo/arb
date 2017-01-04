@@ -51,7 +51,7 @@ struct SizeAwareRoot : public TreeRoot {
     inline void destroyNode(TreeNode *node) const OVERRIDE;
 };
 
-class SizeAwareTree : public TreeNode {
+class SizeAwareTree FINAL_TYPE : public TreeNode {
     // simple size-aware tree
     unsigned leaf_count;
 protected:

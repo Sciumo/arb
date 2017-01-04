@@ -289,7 +289,7 @@ typedef std::list<std::string>::const_iterator ArbStringListConstIter;
 // ----------------------------------------------------------------------------
 // class ArbMatchResultSet
 // ----------------------------------------------------------------------------
-class ArbMatchResultSet : public ArbRefCount {
+class ArbMatchResultSet FINAL_TYPE : public ArbRefCount {
     const ArbProbe                    *Probe;
     std::string                        Headline;
     ArbMatchResultPtrByStringMultiMap  ResultMap;

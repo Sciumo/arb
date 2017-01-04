@@ -139,7 +139,7 @@ public:
         return *this;
     }
 
-    void SQ_init_consensus(int size) OVERRIDE;
+    void SQ_init_consensus(int size) FINAL_OVERRIDE;
     int SQ_print_on_screen() OVERRIDE;
     void SQ_add(const SQ_GroupData& other) OVERRIDE; // add's other to this
 

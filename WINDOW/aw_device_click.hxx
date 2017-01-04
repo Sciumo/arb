@@ -144,7 +144,7 @@ public:
     AW_clicked_element *clone() const OVERRIDE { return new AW_clicked_box(*this); }
 };
 
-class AW_clicked_polygon : public AW_clicked_element {
+class AW_clicked_polygon FINAL_TYPE : public AW_clicked_element {
     int           npos; // number of corners
     AW::Position *pos;  // world coordinates of clicked polygon
 
@@ -227,7 +227,7 @@ inline bool AW_clicked_element::is_polygon() const { return dynamic_cast<const A
 #define AWT_CATCH    30         // max-pixel distance to graphical element (to accept a click or command)
 #define AWT_NO_CATCH -1
 
-class AW_device_click : public AW_simple_device {
+class AW_device_click FINAL_TYPE : public AW_simple_device {
     AW::Position mouse;
 
     int max_distance_line;

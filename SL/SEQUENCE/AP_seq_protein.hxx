@@ -55,7 +55,7 @@ enum AP_PROTEINS {
     APP_MAX = (APP_GAP<<1)-1,
 };
 
-class AP_sequence_protein : public AP_sequence { // derived from a Noncopyable
+class AP_sequence_protein FINAL_TYPE : public AP_sequence { // derived from a Noncopyable
     AP_PROTEINS *seq_prot;
     AP_PROTEINS *mut1; // combination of sequences reachable with up to 1 nucleotide mutation per codon
     AP_PROTEINS *mut2; // combination of sequences reachable with up to 2 nucleotide mutations per codons

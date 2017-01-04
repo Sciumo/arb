@@ -95,6 +95,7 @@ public:
         }
     }
 };
+MARK_NONFINAL_METHOD(LineReader,bool,getLine,(string&));
 
 const size_t BUFFERSIZE = 64*1024;
 
@@ -109,7 +110,7 @@ class BufferedFileReader : public LineReader { // derived from Noncopyable
 
     void fillBuffer();
 
-    bool getLine_intern(string& line) OVERRIDE;
+    bool getLine_intern(string& line) FINAL_OVERRIDE;
 
 protected:
     FILE*& get_fp() { return fp; }
@@ -130,9 +131,10 @@ public:
     bool good() { return fp!=0; }
     void rewind();
 
-    const string& getFilename() const OVERRIDE { return filename; }
+    const string& getFilename() const FINAL_OVERRIDE { return filename; }
 
 };
+MARK_NONFINAL_CLASS(BufferedFileReader);
 
 #else
 #error BufferedFileReader.h included twice

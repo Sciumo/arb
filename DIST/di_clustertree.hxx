@@ -40,7 +40,7 @@ enum ClusterState {
 // ------------------------
 //      ClusterTreeRoot
 
-class ClusterTreeRoot : public ARB_seqtree_root {
+class ClusterTreeRoot FINAL_TYPE : public ARB_seqtree_root {
     AP_FLOAT maxDistance;                           // max. allowed distance inside cluster
     unsigned minClusterSize;                        // min. size of cluster (number of leafs)
 
@@ -107,7 +107,7 @@ typedef LeafRelations::const_iterator    LeafRelationCIter;
 #define TRACE_DIST_CALC
 #endif // DEBUG
 
-class ClusterTree : public ARB_countedTree { // derived from a Noncopyable
+class ClusterTree FINAL_TYPE : public ARB_countedTree { // derived from a Noncopyable
     ClusterState state;
 
     unsigned leaf_count;                            // number of leafs in subtree

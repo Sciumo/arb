@@ -835,12 +835,6 @@ void ED4_base::calc_rel_coords(AW_pos *x, AW_pos *y) // calculates coordinates r
     *y -= world_y;                                  // coords of current object
 }
 
-
-ED4_returncode  ED4_base::event_sent_by_parent(AW_event * /* event */, AW_window * /* aww */)
-{
-    return (ED4_R_OK);
-}
-
 void ED4_manager::hide_children() {
     for (int i=0; i<members(); i++) {
         ED4_base *child = member(i);

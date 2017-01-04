@@ -845,7 +845,7 @@ class DragNDrop : public Dragged {
         perform_drop();
     }
 
-    void perform(DragAction action, const AW_clicked_element *target, const Position&) OVERRIDE {
+    void perform(DragAction action, const AW_clicked_element *target, const Position&) FINAL_OVERRIDE {
         switch (action) {
             case DRAGGING: drag(target); break;
             case DROPPED:  drop(target); break;
@@ -866,7 +866,7 @@ public:
             Drag(*dragFrom), Drop(Drag)
     {}
 
-    void draw_drag_indicator(AW_device *device, int drag_gc) const {
+    void draw_drag_indicator(AW_device *device, int drag_gc) const FINAL_OVERRIDE {
         td_assert(valid_drag_device(device));
         source_element()->indicate_selected(device, drag_gc);
         if (Drag != Drop) {
@@ -931,7 +931,7 @@ class Scaler : public Dragged {
     virtual void draw_scale_indicator(const AW::Position& drag_pos, AW_device *device, int drag_gc) const = 0;
     virtual void do_scale(const Position& drag_pos) = 0;
 
-    void perform(DragAction action, const AW_clicked_element *, const Position& mousepos) OVERRIDE {
+    void perform(DragAction action, const AW_clicked_element *, const Position& mousepos) FINAL_OVERRIDE {
         switch (action) {
             case DRAGGING:
                 last_drag_pos = mousepos;
@@ -960,7 +960,9 @@ public:
         td_assert(!is_nan_or_inf(unscale));
     }
 
-    void draw_drag_indicator(AW_device *device, int drag_gc) const { draw_scale_indicator(last_drag_pos, device, drag_gc); }
+    void draw_drag_indicator(AW_device *device, int drag_gc) const FINAL_OVERRIDE {
+        draw_scale_indicator(last_drag_pos, device, drag_gc);
+    }
 };
 
 inline double discrete_value(double analog_value, int discretion_factor) {
@@ -1259,7 +1261,7 @@ public:
     }
 };
 
-class BranchRotator : public Dragged, virtual Noncopyable {
+class BranchRotator FINAL_TYPE : public Dragged, virtual Noncopyable {
     AW_device  *device;
     AP_tree    *node;
     LineVector  clicked_branch;
@@ -3810,7 +3812,7 @@ struct fake_AW_common : public AW_common {
     }
 };
 
-class fake_AWT_graphic_tree : public AWT_graphic_tree {
+class fake_AWT_graphic_tree FINAL_TYPE : public AWT_graphic_tree {
     int         var_mode; // current range: [0..3]
     double      att_size, att_len;
     BranchStyle bstyle;

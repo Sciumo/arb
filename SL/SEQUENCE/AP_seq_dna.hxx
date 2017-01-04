@@ -18,7 +18,7 @@
 #include <downcast.h>
 #endif
 
-class AP_sequence_parsimony : public AP_sequence { // derived from a Noncopyable
+class AP_sequence_parsimony FINAL_TYPE : public AP_sequence { // derived from a Noncopyable
     void build_table();
     AP_FLOAT count_weighted_bases() const OVERRIDE;
 

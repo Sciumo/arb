@@ -43,7 +43,7 @@
 //
 // Whenever you change the meaning of a question, it is mandatory that you change the unique_id!!!
 
-class AW_repeated_question : virtual Noncopyable {
+class AW_repeated_question FINAL_TYPE : virtual Noncopyable {
     int   answer;
     bool  dont_ask_again;
     char *buttons_used;

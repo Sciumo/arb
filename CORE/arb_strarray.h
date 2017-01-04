@@ -138,7 +138,7 @@ public:
     int index_of(const char *search_for) const;
 };
 
-class StrArray : public CharPtrArray {
+class StrArray FINAL_TYPE : public CharPtrArray {
     void free_elem(int i) OVERRIDE {
         freenull(str[i]);
     }
@@ -223,7 +223,7 @@ public:
     }
 
 };
-
+MARK_NONFINAL_CLASS(ConstStrArray); // @@@ unwanted. cannot be final due to DEBUG-only class StringVectorArray. fix.
 
 void GBT_splitNdestroy_string(ConstStrArray& names, char*& namelist, const char *separator, bool dropEmptyTokens);
 void GBT_splitNdestroy_string(ConstStrArray& dest, char*& namelist, char separator);

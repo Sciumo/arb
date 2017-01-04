@@ -331,6 +331,23 @@ endif
 ifeq ('$(USE_GCC_48_OR_HIGHER)','yes')
  extended_cpp_warnings += -Wunused-local-typedefs# available since gcc 4.7 (but fails for each STATIC_ASSERT, so enable only for Cxx11)
 endif
+ ifeq ('$(USE_GCC_50_OR_HIGHER)','yes')
+  extended_cpp_warnings += -Wswitch-bool
+  extended_cpp_warnings += -Wlogical-not-parentheses
+  extended_cpp_warnings += -Wsizeof-array-argument
+  extended_cpp_warnings += -Wbool-compare
+
+  ifneq ($(DEVELOPER),RELEASE)
+# suggest final:
+   extended_cpp_warnings += -Wsuggest-final-types
+   extended_cpp_warnings += -Wsuggest-final-methods
+   dflags += -DSUGGESTS_FINAL
+  endif
+ endif
+ ifeq ('$(USE_GCC_60_OR_HIGHER)','yes')
+#  extended_cpp_warnings += -Wshift-negative-value # done by -Wextra
+  extended_cpp_warnings += -Wduplicated-cond
+ endif
 
 #---------------------- turn off clang bogus warnings
 
@@ -1881,7 +1898,9 @@ TAG_SOURCE_HEADERS=TAGS.headers
 TAG_SOURCE_CODE=TAGS.codefiles
 TAG_SOURCE_LISTS=$(TAG_SOURCE_HEADERS) $(TAG_SOURCE_CODE)
 
-ETAGS=ctags -e -f $(TAGFILE_TMP) --sort=no --if0=no --extra=q
+ETAGS_IGNORE_LIST=SOURCE_TOOLS/etags_ignore.lst
+
+ETAGS=ctags -e -I @$(ETAGS_IGNORE_LIST) --sort=no --if0=no --extra=q
 ETAGS_TYPES=--C-kinds=cgnsut --C++-kinds=cgnsut
 ETAGS_FUN  =--C-kinds=fm     --C++-kinds=fm
 ETAGS_REST =--C-kinds=dev    --C++-kinds=dev
@@ -1896,15 +1915,27 @@ $(TAG_SOURCE_HEADERS): links
 $(TAG_SOURCE_CODE): links
 	find . \( -name '*.cxx' -o -name "*.c" \) -type f | $(FILTER_TAGS_SOURCES) > $@
 
-tags: $(TAG_SOURCE_LISTS)
-	$(ETAGS)    $(ETAGS_TYPES) -L $(TAG_SOURCE_HEADERS)
-	$(ETAGS) -a $(ETAGS_FUN)   -L $(TAG_SOURCE_HEADERS)
-	$(ETAGS) -a $(ETAGS_REST)  -L $(TAG_SOURCE_HEADERS)
-	$(ETAGS) -a $(ETAGS_TYPES) -L $(TAG_SOURCE_CODE)
-	$(ETAGS) -a $(ETAGS_FUN)   -L $(TAG_SOURCE_CODE)
-	$(ETAGS) -a $(ETAGS_REST)  -L $(TAG_SOURCE_CODE)
+TAGS.1.tmp: $(TAG_SOURCE_HEADERS)
+	$(ETAGS) -f $@ $(ETAGS_TYPES) -L $<
+TAGS.2.tmp: $(TAG_SOURCE_HEADERS)
+	$(ETAGS) -f $@ $(ETAGS_FUN) -L $<
+TAGS.3.tmp: $(TAG_SOURCE_HEADERS)
+	$(ETAGS) -f $@ $(ETAGS_REST) -L $<
+TAGS.4.tmp: $(TAG_SOURCE_CODE)
+	$(ETAGS) -f $@ $(ETAGS_TYPES) -L $<
+TAGS.5.tmp: $(TAG_SOURCE_CODE)
+	$(ETAGS) -f $@ $(ETAGS_FUN) -L $<
+TAGS.6.tmp: $(TAG_SOURCE_CODE)
+	$(ETAGS) -f $@ $(ETAGS_REST) -L $<
+
+TAGS_ALL_PARTS=TAGS.1.tmp TAGS.2.tmp TAGS.3.tmp TAGS.4.tmp TAGS.5.tmp TAGS.6.tmp
+
+$(TAGFILE_TMP) : $(TAGS_ALL_PARTS)
+	cat $(TAGS_ALL_PARTS) > $@
+	rm $(TAGS_ALL_PARTS) $(TAG_SOURCE_LISTS)
+
+tags: $(TAGFILE_TMP) 
 	mv_if_diff $(TAGFILE_TMP) $(TAGFILE)
-	rm $(TAG_SOURCE_LISTS)
 
 #********************************************************************************
 

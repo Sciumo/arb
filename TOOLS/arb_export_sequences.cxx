@@ -118,7 +118,7 @@ public:
     }
 };
 
-class ArbWriter : public Writer { // derived from Noncopyable
+class ArbWriter FINAL_TYPE : public Writer { // derived from Noncopyable
     string  template_arb;
     string  filename;
     double  count, count_max;
@@ -206,7 +206,7 @@ public:
     }
 };
 
-class AwtiExportWriter : public Writer { // derived from Noncopyable
+class AwtiExportWriter FINAL_TYPE : public Writer { // derived from Noncopyable
     GBDATA *gbmain;
     const char *dbname;
     const char *formname;

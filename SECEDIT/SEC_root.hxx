@@ -308,7 +308,7 @@ public:
 class SEC_helix_strand;
 class SEC_loop;
 
-class SEC_helix : public SEC_base { // derived from a Noncopyable
+class SEC_helix FINAL_TYPE : public SEC_base { // derived from a Noncopyable
 
     SEC_helix_strand *strand_to_root;
     size_t base_length; // max. # of bases in any strand
@@ -366,7 +366,7 @@ public:
 
 class SEC_segment;
 
-class SEC_helix_strand : public SEC_base_part { // derived from a Noncopyable
+class SEC_helix_strand FINAL_TYPE : public SEC_base_part { // derived from a Noncopyable
     friend class SEC_helix;
 
     SEC_loop         *origin_loop;     // Pointer to loop where strand comes from
@@ -463,7 +463,7 @@ public:
 // --------------------
 //      SEC_segment
 
-class SEC_segment : public SEC_base_part { // derived from a Noncopyable
+class SEC_segment FINAL_TYPE : public SEC_base_part { // derived from a Noncopyable
 private:
     double   alpha;             // angle of segment (i.e. how much of the loop is used by this segment)
     Position center1, center2; // segments are not circles, they are ellipsoids
@@ -543,7 +543,7 @@ public:
 // -----------------
 //      SEC_loop
 
-class SEC_loop : public SEC_base { // derived from a Noncopyable
+class SEC_loop FINAL_TYPE : public SEC_base { // derived from a Noncopyable
     double   Circumference;     // unit is in "segment-base-distances"
     Position center;            // center point of loop
     SEC_helix_strand *primary_strand; // primary strand of loop

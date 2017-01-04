@@ -1040,7 +1040,7 @@ public:
     inline void set_update();
     virtual void update_requested_children() = 0;
 
-    virtual ED4_returncode  event_sent_by_parent(AW_event *event, AW_window *aww);
+    virtual ED4_returncode event_sent_by_parent(AW_event *event, AW_window *aww) = 0;
 
     virtual ARB_ERROR route_down_hierarchy(const ED4_route_cb& cb);
 
@@ -1215,14 +1215,14 @@ public:
 
     // functions concerned with graphics
     void Show(bool refresh_all, bool is_cleared) OVERRIDE;
-    bool calc_bounding_box() OVERRIDE;
+    bool calc_bounding_box() FINAL_OVERRIDE;
 
     ED4_returncode distribute_children();
 
     // top-down functions, means travelling down the hierarchy
-    ED4_returncode event_sent_by_parent(AW_event *event, AW_window *aww) OVERRIDE;
+    ED4_returncode event_sent_by_parent(AW_event *event, AW_window *aww) FINAL_OVERRIDE;
 
-    void request_refresh(int clear=1) OVERRIDE;
+    void request_refresh(int clear=1) FINAL_OVERRIDE;
     ED4_returncode clear_refresh();
 
     void resize_requested_children() OVERRIDE;
@@ -1230,13 +1230,13 @@ public:
     void update_requested_children() OVERRIDE;
 
     void delete_requested_children() OVERRIDE;
-    void Delete() OVERRIDE;
+    void Delete() FINAL_OVERRIDE;
 
     ED4_returncode  move_requested_by_parent(ED4_move_info *mi);
 
     void create_consensus(ED4_abstract_group_manager *upper_group_manager, arb_progress *progress);
 
-    ARB_ERROR route_down_hierarchy(const ED4_route_cb& cb) OVERRIDE;
+    ARB_ERROR route_down_hierarchy(const ED4_route_cb& cb) FINAL_OVERRIDE;
 
     ED4_base *find_first_that(ED4_level level, const ED4_basePredicate& fulfills_predicate);
 
@@ -1272,7 +1272,7 @@ public:
     ED4_base *search_spec_child_rek(ED4_level level); // recursive search for level
 
     // general purpose functions
-    ED4_base        *search_ID(const char *id) OVERRIDE;
+    ED4_base        *search_ID(const char *id) FINAL_OVERRIDE;
     void  remove_callbacks() OVERRIDE;
 
     ED4_terminal *get_first_terminal(int start_index=0) const;
@@ -1281,7 +1281,7 @@ public:
     void hide_children();
     void unhide_children();
 
-    bool is_hidden() const OVERRIDE {
+    bool is_hidden() const FINAL_OVERRIDE {
         if (flag.hidden) return true;
         if (!parent) return false;
         return parent->is_hidden();
@@ -1290,6 +1290,8 @@ public:
     ED4_manager(const ED4_objspec& spec_, const char *id, AW_pos width, AW_pos height, ED4_manager *parent);
     ~ED4_manager() OVERRIDE;
 };
+MARK_NONFINAL_METHOD(ED4_manager,void,update_requested_children,());
+MARK_NONFINAL_METHOD(ED4_manager,void,delete_requested_children,());
 
 class ED4_terminal : public ED4_base { // derived from a Noncopyable
     E4B_AVOID_UNNEEDED_CASTS(terminal);
@@ -1311,12 +1313,12 @@ public:
     void Show(bool refresh_all, bool is_cleared) OVERRIDE;
     virtual void draw() = 0;
 
-    bool calc_bounding_box() OVERRIDE;
+    bool calc_bounding_box() FINAL_OVERRIDE;
 
     ED4_returncode draw_drag_box(AW_pos x, AW_pos y, GB_CSTR text = NULL, int cursor_y=-1);
 
     // functions which concern the object as a child
-    void request_refresh(int clear=1) OVERRIDE;
+    void request_refresh(int clear=1) FINAL_OVERRIDE;
 
     void resize_requested_children() OVERRIDE;
 
@@ -1330,20 +1332,21 @@ public:
 
     // general purpose functions
     ED4_base *search_ID(const char *id) OVERRIDE;
-    char          *resolve_pointer_to_string_copy(int *str_len = 0) const OVERRIDE;
-    const char    *resolve_pointer_to_char_pntr(int *str_len = 0) const OVERRIDE;
-    void remove_callbacks() OVERRIDE;
+    char          *resolve_pointer_to_string_copy(int *str_len = 0) const FINAL_OVERRIDE;
+    const char    *resolve_pointer_to_char_pntr(int *str_len = 0) const FINAL_OVERRIDE;
+    void remove_callbacks() FINAL_OVERRIDE;
 
     GB_ERROR write_sequence(const char *seq, int seq_len);
 
     void scroll_into_view(ED4_window *ed4w);
     inline bool setCursorTo(ED4_cursor *cursor, int seq_pos, bool unfoldGroups, ED4_CursorJumpType jump_type);
 
-    bool is_hidden() const OVERRIDE { return parent && parent->is_hidden(); }
+    bool is_hidden() const FINAL_OVERRIDE { return parent && parent->is_hidden(); }
 
     ED4_terminal(const ED4_objspec& spec_, GB_CSTR id, AW_pos width, AW_pos height, ED4_manager *parent);
     ~ED4_terminal() OVERRIDE;
 };
+MARK_NONFINAL_METHOD(ED4_terminal,void,Show,(bool,bool));
 
 enum ED4_species_mode {
     ED4_SM_MOVE,
@@ -1551,7 +1554,7 @@ inline void ED4_root::announce_deletion(ED4_base *object) {
 // All manager classes only differ in their static properties.
 // This kind of construction was chosen for using a minimum of RAM
 
-class ED4_main_manager : public ED4_manager { // derived from a Noncopyable
+class ED4_main_manager FINAL_TYPE : public ED4_manager { // derived from a Noncopyable
     // first in hierarchy
 
     E4B_AVOID_UNNEEDED_CASTS(main_manager);
@@ -1792,7 +1795,7 @@ public:
     DECLARE_DUMP_FOR_LEAFCLASS(ED4_abstract_group_manager);
 };
 
-class ED4_species_manager : public ED4_manager {
+class ED4_species_manager FINAL_TYPE : public ED4_manager {
     E4B_AVOID_UNNEEDED_CASTS(species_manager);
 
     ED4_cb_list<ED4_species_manager, ED4_species_managerCallback> changed_cbs; // called when sequence changes
@@ -1891,7 +1894,7 @@ struct ED4_name_manager : public ED4_manager {
 //      terminal classes
 
 
-struct ED4_tree_terminal : public ED4_terminal {
+struct ED4_tree_terminal FINAL_TYPE : public ED4_terminal {
     E4B_AVOID_UNNEEDED_CASTS(tree_terminal);
     
     void draw() OVERRIDE;
@@ -1970,7 +1973,7 @@ public:
     ED4_orf_terminal(const char *id, AW_pos width, AW_pos height, ED4_manager *parent);
     ~ED4_orf_terminal() OVERRIDE;
 
-    GB_alignment_type GetAliType() OVERRIDE;
+    GB_alignment_type GetAliType() OVERRIDE { return GB_AT_AA; }
 
     void SET_aaSeqFlags (int startPos, int strandType) { aaStartPos = startPos; aaStrandType = strandType; }
     void SET_aaSequence(const char *aaSeq) { freedup(aaSequence, aaSeq); aaSeqLen = strlen(aaSequence); }
@@ -1996,7 +1999,7 @@ public:
 
     ED4_sequence_terminal(const char *id, AW_pos width, AW_pos height, ED4_manager *parent, bool shall_display_secstruct_info_);
 
-    GB_alignment_type GetAliType() OVERRIDE;
+    GB_alignment_type GetAliType() FINAL_OVERRIDE { return ED4_ROOT->alignment_type; }
 
     void deleted_from_database() OVERRIDE;
     int get_length() const OVERRIDE { return ED4_abstract_sequence_terminal::get_length(); }
@@ -2014,8 +2017,11 @@ public:
 
     DECLARE_DUMP_FOR_MIDCLASS(ED4_sequence_terminal,ED4_abstract_sequence_terminal);
 };
+MARK_NONFINAL_CLASS(ED4_sequence_terminal);
+MARK_NONFINAL_METHOD(ED4_sequence_terminal,int,get_length,()const);
+MARK_NONFINAL_METHOD(ED4_sequence_terminal,char*,get_sequence_copy,(int*)const);
 
-class ED4_columnStat_terminal : public ED4_text_terminal { // derived from a Noncopyable
+class ED4_columnStat_terminal FINAL_TYPE : public ED4_text_terminal { // derived from a Noncopyable
     char *likelihood[4];        // likelihood-array for each base (ACGU) [length of array = alignment_length]
     int   latest_update;
 
@@ -2042,7 +2048,7 @@ public:
     DECLARE_DUMP_FOR_LEAFCLASS(ED4_text_terminal);
 };
 
-class ED4_species_name_terminal : public ED4_text_terminal { // derived from a Noncopyable
+class ED4_species_name_terminal FINAL_TYPE : public ED4_text_terminal { // derived from a Noncopyable
     E4B_AVOID_UNNEEDED_CASTS(species_name_terminal);
     bool set_dynamic_size() OVERRIDE;
 
@@ -2065,7 +2071,7 @@ public:
     DECLARE_DUMP_FOR_LEAFCLASS(ED4_text_terminal);
 };
 
-class ED4_flag_header_terminal : public ED4_text_terminal { // derived from a Noncopyable
+class ED4_flag_header_terminal FINAL_TYPE : public ED4_text_terminal { // derived from a Noncopyable
     // displays header of flags
 
     E4B_AVOID_UNNEEDED_CASTS(flag_header_terminal);
@@ -2080,7 +2086,7 @@ public:
     DECLARE_DUMP_FOR_LEAFCLASS(ED4_text_terminal);
 };
 
-class ED4_sequence_info_terminal : public ED4_text_terminal {
+class ED4_sequence_info_terminal FINAL_TYPE : public ED4_text_terminal {
     E4B_AVOID_UNNEEDED_CASTS(sequence_info_terminal);
     bool set_dynamic_size() OVERRIDE;
 
@@ -2101,7 +2107,7 @@ public:
     DECLARE_DUMP_FOR_LEAFCLASS(ED4_text_terminal);
 };
 
-struct ED4_pure_text_terminal : public ED4_text_terminal {
+struct ED4_pure_text_terminal FINAL_TYPE : public ED4_text_terminal {
     E4B_AVOID_UNNEEDED_CASTS(pure_text_terminal);
     
     ED4_pure_text_terminal(const char *id, AW_pos width, AW_pos height, ED4_manager *parent);
@@ -2127,12 +2133,12 @@ public:
 #endif
 
     int get_length() const OVERRIDE;
-    char *get_sequence_copy(int *str_len = 0) const OVERRIDE;
+    char *get_sequence_copy(int *str_len = 0) const FINAL_OVERRIDE { return get_group_manager()->build_consensus_string(str_len); }
 
     DECLARE_DUMP_FOR_LEAFCLASS(ED4_sequence_terminal);
 };
 
-class ED4_spacer_terminal : public ED4_terminal {
+class ED4_spacer_terminal FINAL_TYPE : public ED4_terminal {
     E4B_AVOID_UNNEEDED_CASTS(spacer_terminal);
     bool shallDraw; // true -> spacer is really drawn (otherwise it's only a placeholder)
 
@@ -2159,7 +2165,7 @@ public:
     DECLARE_DUMP_FOR_LEAFCLASS(ED4_terminal);
 };
 
-class ED4_flag_terminal : public ED4_terminal {
+class ED4_flag_terminal FINAL_TYPE : public ED4_terminal {
     E4B_AVOID_UNNEEDED_CASTS(flag_terminal);
     bool set_dynamic_size() OVERRIDE;
 

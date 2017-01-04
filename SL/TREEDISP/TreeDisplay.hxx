@@ -383,7 +383,7 @@ public:
     }
 
     virtual void read_tree_settings();
-    void update_structure() {
+    void update_structure() FINAL_OVERRIDE {
         AP_tree *root = get_root_node();
         if (root) root->compute_tree();
     }
@@ -442,9 +442,9 @@ public:
     void     reorder_tree(TreeOrder mode);
     GB_ERROR create_group(AP_tree * at) __ATTR__USERESULT;
     void     toggle_group(AP_tree * at);
-    GB_ERROR load(GBDATA *gb_main, const char *name) OVERRIDE __ATTR__USERESULT;
-    GB_ERROR save(GBDATA *gb_main, const char *name) OVERRIDE __ATTR__USERESULT;
-    int      check_update(GBDATA *gb_main) OVERRIDE;         // reload tree if needed
+    GB_ERROR load(GBDATA *gb_main, const char *name) FINAL_OVERRIDE __ATTR__USERESULT;
+    GB_ERROR save(GBDATA *gb_main, const char *name) FINAL_OVERRIDE __ATTR__USERESULT;
+    int      check_update(GBDATA *gb_main) FINAL_OVERRIDE;         // reload tree if needed
     void     update(GBDATA *gb_main) OVERRIDE;
 
     void set_tree_style(AP_tree_display_style style, AWT_canvas *ntw);
@@ -471,6 +471,8 @@ public:
     friend class fake_AWT_graphic_tree;
 #endif
 };
+MARK_NONFINAL_CLASS(AWT_graphic_tree);
+MARK_NONFINAL_METHOD(AWT_graphic_tree,AP_tree_root*,create_tree_root,(AliView*,AP_sequence*,bool));
 
 class ClickedTarget {
     /*! Represents any target corresponding to some (mouse-)position in the tree display.
