@@ -55,7 +55,7 @@ static void nt_extract_configuration(UNFIXED, extractType ext_type);
 
 typedef map<string, string> ConfigHits; // key=speciesname; value[markerIdx]==1 -> highlighted
 
-class ConfigMarkerDisplay : public MarkerDisplay, virtual Noncopyable {
+class ConfigMarkerDisplay FINAL_TYPE : public MarkerDisplay, virtual Noncopyable {
     GBDATA                  *gb_main;
     SmartPtr<ConstStrArray>  config; // configuration names
     StrArray                 errors; // config load-errors

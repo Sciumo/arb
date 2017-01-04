@@ -54,13 +54,47 @@
 // allows to protect overloading functions against signature changes of overload functions:
 # define OVERRIDE override
 
+// allows additional optimization of virtual calls
+// (does not only allow to replace virtual by a normal call, it also allows inlining!)
+# define FINAL_TYPE     final
+# define FINAL_OVERRIDE final override
+
 #else
 // backward (non C++11) compatibility defines:
 # define CONSTEXPR        const
 # define CONSTEXPR_RETURN
 # define OVERRIDE
+# define FINAL_TYPE
+# define FINAL_OVERRIDE
 
 #endif
+
+// allow to hide unwanted final suggestions
+#ifdef SUGGESTS_FINAL
+
+# define NF_JOIN(X,Y) X##Y
+# define MARK_NONFINAL_CLASS(BASE)                      \
+    namespace final_unsuggest {                         \
+        struct NF_JOIN(unfinalize,BASE) final : BASE {  \
+        };                                              \
+    }
+// PARAMS has to contain parentheses and attributes like const!
+# define MARK_NONFINAL_METHOD(BASE,RETURN_TYPE,METHOD_NAME,PARAMS)      \
+    namespace final_unsuggest {                                         \
+        struct NF_JOIN(BASE,METHOD_NAME) final : BASE                   \
+        {                                                               \
+            inline RETURN_TYPE METHOD_NAME PARAMS override;             \
+        };                                                              \
+    }
+
+#else
+
+# define MARK_NONFINAL_CLASS(BASE)
+# define MARK_NONFINAL_METHOD(BASE,RETURN_TYPE,METHOD_NAME,PARAMS)
+
+#endif
+
+#define MARK_NONFINAL_DTOR(BASE) MARK_NONFINAL_CLASS(BASE)
 
 #else
 #error cxxforward.h included twice

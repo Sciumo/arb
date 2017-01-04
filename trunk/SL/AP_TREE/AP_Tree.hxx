@@ -95,9 +95,9 @@ public:
 
     // ARB_seqtree_root interface
 
-    void change_root(TreeNode *old, TreeNode *newroot) OVERRIDE;
+    void change_root(TreeNode *old, TreeNode *newroot) FINAL_OVERRIDE;
 
-    GB_ERROR loadFromDB(const char *name) OVERRIDE;
+    GB_ERROR loadFromDB(const char *name) FINAL_OVERRIDE;
     GB_ERROR saveToDB() OVERRIDE;
 
     // AP_tree_root interface
@@ -113,6 +113,10 @@ public:
 
     long remove_leafs(AWT_RemoveType awt_remove_type);
 };
+MARK_NONFINAL_CLASS(AP_tree_root);
+MARK_NONFINAL_METHOD(AP_tree_root,GB_ERROR,saveToDB,());
+MARK_NONFINAL_METHOD(AP_tree_root,TreeNode*,makeNode,()const);
+MARK_NONFINAL_METHOD(AP_tree_root,void,destroyNode,(TreeNode*)const);
 
 namespace tree_defaults {
     const float SPREAD    = 1.0;
@@ -237,7 +241,7 @@ public:
 
     DEFINE_TREE_ACCESSORS(AP_tree_root, AP_tree);
 
-    void compute_tree() OVERRIDE;
+    void compute_tree() FINAL_OVERRIDE;
 
     unsigned count_leafs() const;
     unsigned get_leaf_count() const OVERRIDE { // assumes compute_tree has been called (since last tree modification)
@@ -319,6 +323,11 @@ public:
     bool has_correct_mark_flags() const;
 #endif
 };
+MARK_NONFINAL_CLASS(AP_tree);
+MARK_NONFINAL_METHOD(AP_tree,AP_tree*,REMOVE,());
+MARK_NONFINAL_METHOD(AP_tree,void,swap_sons,());
+MARK_NONFINAL_METHOD(AP_tree,AP_UPDATE_FLAGS,check_update,());
+MARK_NONFINAL_METHOD(AP_tree,void,moveNextTo,(AP_tree*,AP_FLOAT));
 
 inline TreeNode *AP_tree_root::makeNode() const { return new AP_tree(const_cast<AP_tree_root*>(this)); }
 inline void AP_tree_root::destroyNode(TreeNode *node) const { delete DOWNCAST(AP_tree*, node); }

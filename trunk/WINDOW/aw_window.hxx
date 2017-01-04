@@ -666,6 +666,7 @@ public:
     ~AW_window_menu_modes();
     void init(AW_root *root, const char *wid, const char *windowname, int width, int height);
 };
+MARK_NONFINAL_CLASS(AW_window_menu_modes);
 
 class AW_window_menu : public AW_window {
 private:
@@ -684,7 +685,7 @@ public:
 };
 
 
-class AW_window_simple : public AW_window {
+class AW_window_simple FINAL_TYPE : public AW_window {
 private:
 public:
     AW_window_simple();

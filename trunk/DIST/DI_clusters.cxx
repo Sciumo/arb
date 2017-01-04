@@ -300,14 +300,14 @@ static void sort_order_changed_cb(AW_root *aw_root) {
 class GroupTree;
 typedef map<string, GroupTree*> Species2Tip;
 
-struct GroupTreeRoot : public ARB_seqtree_root {
+struct GroupTreeRoot FINAL_TYPE : public ARB_seqtree_root {
     GroupTreeRoot(AliView *aliView, AP_sequence *seqTempl, bool add_delete_callbacks);
     ~GroupTreeRoot() OVERRIDE { predelete(); }
     inline TreeNode *makeNode() const OVERRIDE;
     inline void destroyNode(TreeNode *node) const OVERRIDE;
 };
 
-class GroupTree : public ARB_countedTree {
+class GroupTree FINAL_TYPE : public ARB_countedTree {
     unsigned leaf_count;   // total number of leafs in subtree
     unsigned tagged_count; // tagged leafs
 

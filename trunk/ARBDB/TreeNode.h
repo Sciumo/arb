@@ -103,6 +103,7 @@ public:
 
     ARB_edge find_innermost_edge();
 };
+MARK_NONFINAL_METHOD(TreeRoot,void,change_root,(TreeNode*,TreeNode*));
 
 struct TreeNode : virtual Noncopyable {
     bool      is_leaf;
@@ -387,6 +388,8 @@ public:
     Validity is_valid() const;
 #endif // PROVIDE_TREE_STRUCTURE_TESTS
 };
+MARK_NONFINAL_METHOD(TreeNode,void,swap_sons,());
+MARK_NONFINAL_METHOD(TreeNode,void,set_root,());
 
 inline void destroy(TreeNode *that) {
     TreeNode::destroy(that);
@@ -458,7 +461,7 @@ struct SimpleRoot : public TreeRoot {
     inline void destroyNode(TreeNode *node) const OVERRIDE;
 };
 
-class SimpleTree : public TreeNode {
+class SimpleTree FINAL_TYPE : public TreeNode {
 protected:
     ~SimpleTree() OVERRIDE {}
     friend class SimpleRoot;

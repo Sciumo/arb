@@ -67,7 +67,7 @@ public:
 //  ############################################################
 //  # PS_BitSet_Fast
 //  ############################################################
-class PS_BitSet_Fast : public PS_BitSet {
+class PS_BitSet_Fast FINAL_TYPE : public PS_BitSet {
 private:
 
     PS_BitSet_Fast(const PS_BitSet_Fast&);

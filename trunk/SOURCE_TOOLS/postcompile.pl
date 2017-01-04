@@ -437,7 +437,7 @@ sub parse_input(\@) {
       $_ = undef;
     }
     elsif ($_ =~ $reg_file_noline) {
-      if (/^cc1plus:.*error/) {
+      if (/^(cc1plus|g\+\+):.*error/o) {
         ; # display normally
       }
       else {

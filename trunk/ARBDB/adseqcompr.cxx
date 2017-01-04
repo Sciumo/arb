@@ -35,7 +35,7 @@ struct CompressionRoot : public TreeRoot {
     void destroyNode(TreeNode *node) const OVERRIDE;
 };
 
-class CompressionTree : public TreeNode {
+class CompressionTree FINAL_TYPE : public TreeNode {
 protected:
     ~CompressionTree() OVERRIDE {}
     friend class CompressionRoot;

@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 
 NAME=$1
 if [ -z "$NAME" ]; then

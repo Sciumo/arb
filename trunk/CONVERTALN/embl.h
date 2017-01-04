@@ -38,7 +38,7 @@ struct Emblref {
     DECLARE_ASSIGNMENT_OPERATOR(Emblref);
 };
 
-class Embl : public InputFormat, public RefContainer<Emblref> { // derived from a Noncopyable
+class Embl FINAL_TYPE : public InputFormat, public RefContainer<Emblref> { // derived from a Noncopyable
     char *create_id() const OVERRIDE {
         char buf[TOKENSIZE];
         embl_key_word(ID, 0, buf);

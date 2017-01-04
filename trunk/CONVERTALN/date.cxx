@@ -176,8 +176,8 @@ const char *genbank_date(const char *other_date) {
         static char gdate[SIZE];
         gdate[0] = 0;
 
-        int  day, month, year;
-        bool ok = false;
+        int  day = -1, month = -1, year = -1;
+        bool ok  = false;
         if (length > 10) {
             if (is_genbank_date(other_date)) {
                 strncpy(gdate, other_date, 11);

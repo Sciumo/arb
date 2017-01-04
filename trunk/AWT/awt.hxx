@@ -20,6 +20,9 @@
 #ifndef CB_BASE_H
 #include <cb_base.h>
 #endif
+#ifndef CXXFORWARD_H
+#include <cxxforward.h>
+#endif
 
 
 #define awt_assert(cond) arb_assert(cond)
@@ -39,7 +42,7 @@ class awt_item_type_selector;
 GB_ERROR AWT_initialize_input_mask(AW_root *root, GBDATA *gb_main, const awt_item_type_selector *sel, const char* mask_name, bool localMask);
 
 
-class awt_input_mask_descriptor {
+class awt_input_mask_descriptor FINAL_TYPE {
 private:
     char *title;                // title of the input mask
     char *internal_maskname;    // starts with 0 for local mask and with 1 for global mask

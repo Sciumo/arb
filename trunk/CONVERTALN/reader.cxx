@@ -108,9 +108,6 @@ void Writer::throw_write_error() const {
     throw_errorf(41, "Write error: %s(=%i) while writing %s",
                  strerror(errno), errno, name());
 }
-void FileWriter::out(char ch) {
-    if (fputc(ch, ofp) == EOF) throw_write_error();
-}
 
 int FileWriter::outf(const char *format, ...) {
     va_list parg;
@@ -133,11 +130,4 @@ int Writer::outf(const char *format, ...) {
     return printed;
 }
 
-int Writer::out(const char *text) {
-    int i = 0;
-    while (text[i]) {
-        out(text[i++]);
-    }
-    return i;
-}
 

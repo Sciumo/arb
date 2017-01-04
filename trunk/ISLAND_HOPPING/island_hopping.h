@@ -24,7 +24,7 @@
 
 class IslandHopping;
 
-class IslandHoppingParameter {
+class IslandHoppingParameter FINAL_TYPE {
     int    use_user_freqs;
     double fT;
     double fC;
@@ -56,7 +56,7 @@ public:
     virtual ~IslandHoppingParameter();
 };
 
-class IslandHopping : virtual Noncopyable {
+class IslandHopping FINAL_TYPE : virtual Noncopyable {
     static IslandHoppingParameter *para;
 
     int alignment_length;

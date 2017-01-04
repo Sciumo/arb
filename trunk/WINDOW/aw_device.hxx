@@ -510,12 +510,15 @@ public:
         clear_part(AW::Rectangle(AW::Position(x, y), AW::Vector(width, height)), filteri);
     }
 
-    virtual void    move_region(AW_pos src_x, AW_pos src_y, AW_pos width, AW_pos height, AW_pos dest_x, AW_pos dest_y);
-    virtual void    fast();                                         // e.g. zoom linewidth off
-    virtual void    slow();
-    virtual void    flush();                                        // empty X11 buffers
+    virtual void move_region(AW_pos src_x, AW_pos src_y, AW_pos width, AW_pos height, AW_pos dest_x, AW_pos dest_y);
+    virtual void fast();                                         // e.g. zoom linewidth off
+    virtual void slow();
+    virtual void flush();                                        // empty X11 buffers
 };
-
+MARK_NONFINAL_METHOD(AW_device,void,move_region,(AW_pos,AW_pos,AW_pos,AW_pos,AW_pos,AW_pos));
+MARK_NONFINAL_METHOD(AW_device,void,clear,(AW_bitset));
+MARK_NONFINAL_METHOD(AW_device,void,clear_part,(const AW::Rectangle&,AW_bitset));
+MARK_NONFINAL_METHOD(AW_device,void,flush,());
 
 inline void AW_click_cd::link() {
     previous            = my_device->click_cd;
@@ -525,7 +528,7 @@ inline AW_click_cd::~AW_click_cd() { my_device->click_cd = previous; }
 inline void AW_click_cd::disable() { my_device->click_cd = NULL; }
 inline void AW_click_cd::enable() { my_device->click_cd = this; }
 
-class AW_device_print : public AW_device { // derived from a Noncopyable
+class AW_device_print FINAL_TYPE : public AW_device { // derived from a Noncopyable
     FILE *out;
     bool  color_mode;
 

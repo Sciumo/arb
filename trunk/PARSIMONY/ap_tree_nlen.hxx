@@ -87,7 +87,7 @@ enum AP_TREE_SIDE {
 class  AP_tree_edge;
 class  AP_main;
 
-class AP_pars_root : public AP_tree_root {
+class AP_pars_root FINAL_TYPE : public AP_tree_root {
     // @@@ add responsibility for node/edge resources
     bool has_been_saved;
 public:
@@ -104,7 +104,7 @@ public:
 
 typedef uint8_t EdgeIndex;
 
-class AP_tree_nlen : public AP_tree { // derived from a Noncopyable // @@@ rename -> AP_pars_tree? (later!)
+class AP_tree_nlen FINAL_TYPE : public AP_tree { // derived from a Noncopyable // @@@ rename -> AP_pars_tree? (later!)
     // tree that is independent of branch lengths and root
 
     // definitions for AP_tree_edge:

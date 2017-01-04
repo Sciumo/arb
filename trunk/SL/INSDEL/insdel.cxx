@@ -210,7 +210,7 @@ public:
     }
 };
 
-class ComposedAliData : public AliData {
+class ComposedAliData FINAL_TYPE : public AliData {
     AliDataPtr left, right;
     bool       hasSlice;
 
@@ -1056,7 +1056,7 @@ public:
     }
 };
 
-class AliFormatCommand : public AliEditCommand {
+class AliFormatCommand FINAL_TYPE : public AliEditCommand {
     size_t wanted_len;
 
 public:

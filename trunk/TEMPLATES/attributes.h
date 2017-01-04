@@ -30,6 +30,8 @@
 // __ATTR__VFORMAT_MEMBER(p)    same as __ATTR__VFORMAT for member functions
 //
 // ------------------------------------------------------------
+// Note: consider defining new attributes in ../SOURCE_TOOLS/etags_ignore.lst@__ATTR
+// ------------------------------------------------------------
 
 #if (GCC_PATCHLEVEL_CODE >= 40502) // gcc 4.5.2 and higher
 # define __ATTR__DEPRECATED(reason) __attribute__((deprecated(reason)))

@@ -1314,7 +1314,7 @@ static string find_internal_name(const string& mask_name, bool search_in_local) 
 // ----------------------------------
 //      class awt_marked_checkbox
 
-class awt_marked_checkbox : public awt_viewport, public awt_linked_to_item {
+class awt_marked_checkbox FINAL_TYPE : public awt_viewport, public awt_linked_to_item {
 private:
 
     string generate_baseName(awt_input_mask_global& global_) {

@@ -15,7 +15,7 @@
 #include <arb_string.h>
 #endif
 
-class Macke : public InputFormat { // derived from a Noncopyable
+class Macke FINAL_TYPE : public InputFormat { // derived from a Noncopyable
     int    numofrem;            // num. of remarks
     char **remarks;             // remarks
     int    allocated;

@@ -42,7 +42,7 @@ struct GenbankRef {
     DECLARE_ASSIGNMENT_OPERATOR(GenbankRef);
 };
 
-class GenBank : public InputFormat, public RefContainer<GenbankRef> { // derived from a Noncopyable
+class GenBank FINAL_TYPE : public InputFormat, public RefContainer<GenbankRef> { // derived from a Noncopyable
     char *create_id() const OVERRIDE {
         char buf[TOKENSIZE];
         genbank_key_word(locus, 0, buf);

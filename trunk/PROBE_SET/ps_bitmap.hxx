@@ -86,7 +86,7 @@ public:
 //   point to an allocated byte. Make sure you reserve the needed
 //   space either at creation time or before accessing the bits.
 //
-class PS_BitMap_Fast : public PS_BitMap {
+class PS_BitMap_Fast FINAL_TYPE : public PS_BitMap {
 private:
 
     bool copy(const PS_BitSet *_other_bitset);   // declared but not implemented
@@ -138,7 +138,7 @@ public:
 //   column of the same index.
 //   Only set() automatically updates count_true_per_index.
 //
-class PS_BitMap_Counted : public PS_BitMap { // derived from a Noncopyable
+class PS_BitMap_Counted FINAL_TYPE : public PS_BitMap { // derived from a Noncopyable
     long *count_true_per_index;
 
     bool copy(const PS_BitSet *_other_bitset);   // declared but not implemented because PS_BitSet has no count_true_per_index array

@@ -14,7 +14,7 @@
 void fake_AW_init_color_groups();
 
 template<typename SEQTYPE>
-struct fake_agt : public AWT_graphic_parsimony, virtual Noncopyable {
+struct fake_agt FINAL_TYPE : public AWT_graphic_parsimony, virtual Noncopyable {
     SEQTYPE *templ;
 
     fake_agt(ArbParsimony& parsimony_)

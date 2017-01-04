@@ -148,7 +148,7 @@ bool ShaderPlugin::overlay_color_groups() const {
 
 #define SKIP_TMP_PREFIX 4
 
-class ItemShader_impl : public ItemShader {
+class ItemShader_impl FINAL_TYPE : public ItemShader {
     Plugins plugins;
     string  help_id;
     string  awar_prefix;

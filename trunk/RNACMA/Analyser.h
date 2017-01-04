@@ -30,7 +30,7 @@
 #include "Cma.h"
 #endif
 
-class Analyser : virtual Noncopyable {
+class Analyser FINAL_TYPE : virtual Noncopyable {
 
 private:
     /**

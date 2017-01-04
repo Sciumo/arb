@@ -18,7 +18,7 @@
 #include <arb_strarray.h>
 #endif
 
-class MultiFileReader : public LineReader { // derived from Noncopyable
+class MultiFileReader FINAL_TYPE : public LineReader { // derived from Noncopyable
     const CharPtrArray&  files;
     BufferedFileReader  *reader;
     BufferedFileReader  *last_reader;

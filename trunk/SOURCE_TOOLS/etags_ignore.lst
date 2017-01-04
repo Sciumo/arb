@@ -1,0 +1,33 @@
+# identifiers to ignore or redefine for etags
+#
+# see (manual-entry "ctags") switch "-I"
+#
+# basic syntax:
+# - single word => ignore
+# - "old=new" => replace
+# - '+' means "ignore macro parens+params after word"
+
+OVERRIDE
+
+FINAL_TYPE
+FINAL_OVERRIDE
+
+__ATTR__USERESULT
+__ATTR__DEPRECATED
+__ATTR__DONT_SANITIZE
+__ATTR__NORETURN
+__ATTR__SENTINEL
+__ATTR__USERESULT
+__ATTR__FORMAT
+__ATTR__VFORMAT
+__ATTR__FORMAT_MEMBER
+__ATTR__VFORMAT_MEMBER
+__ATTR__DEPRECATED_TODO
+__ATTR__DEPRECATED_LATER
+
+IF_DEBUG+
+IF_NDEBUG+
+IF_MOTIF+
+IF_GTK+
+IF_ASSERTION_USED+
+

@@ -902,10 +902,6 @@ ED4_consensus_sequence_terminal::ED4_consensus_sequence_terminal(const char *tem
     species_name = NULL;
 }
 
-char *ED4_consensus_sequence_terminal::get_sequence_copy(int *str_len) const {
-    return get_group_manager()->build_consensus_string(str_len);
-}
-
 int ED4_consensus_sequence_terminal::get_length() const {
     return get_char_table().size();
 }
@@ -931,11 +927,6 @@ ED4_orf_terminal::ED4_orf_terminal(const char *temp_id, AW_pos width, AW_pos hei
     aaStrandType = 0;
 }
 
-GB_alignment_type ED4_orf_terminal::GetAliType()
-{
-    return (GB_alignment_type) GB_AT_AA;
-}
-
 ED4_orf_terminal::~ED4_orf_terminal()
 {
     free(aaSequence);
@@ -947,11 +938,6 @@ ED4_sequence_terminal::ED4_sequence_terminal(const char *temp_id, AW_pos width, 
       shall_display_secstruct_info(shall_display_secstruct_info_)
 {
     st_ml_node = NULL;
-}
-
-GB_alignment_type ED4_sequence_terminal::GetAliType()
-{
-    return ED4_ROOT->alignment_type;
 }
 
 ED4_pure_text_terminal::ED4_pure_text_terminal(const char *temp_id, AW_pos width, AW_pos height, ED4_manager *temp_parent)
