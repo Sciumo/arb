@@ -1263,10 +1263,10 @@ ARB_ERROR rebuild_consensus(ED4_base *object) {
         ED4_species_manager *spec_man = object->to_species_manager();
         spec_man->do_callbacks();
 
-        ED4_base *sequence_data_terminal = object->search_spec_child_rek(LEV_SEQUENCE_STRING);
+        ED4_base *sequence_data_terminal = spec_man->search_spec_child_rek(LEV_SEQUENCE_STRING);
         sequence_data_terminal->request_refresh();
     }
-    return NULL;
+    return NULL; // needed by route_down_hierarchy
 }
 
 void ED4_new_editor_window(AW_window *aww) {

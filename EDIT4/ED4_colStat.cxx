@@ -23,7 +23,7 @@ static void toggle_detailed_column_stat(ED4_sequence_terminal *seq_term, bool fo
         ED4_base                   *existing_colstat = multi_seq_man->search_spec_child_rek(LEV_COL_STAT);
 
         if (existing_colstat) {
-            ED4_manager *colstat_seq_man = existing_colstat->get_parent(LEV_SEQUENCE)->to_manager();
+            ED4_manager *colstat_seq_man = existing_colstat->get_parent(LEV_SEQUENCE);
             colstat_seq_man->Delete();
         }
         else { // add

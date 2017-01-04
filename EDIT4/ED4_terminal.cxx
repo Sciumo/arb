@@ -283,15 +283,13 @@ GB_ERROR ED4_terminal::write_sequence(const char *seq, int seq_len)
 }
 
 
-ED4_returncode ED4_terminal::remove_callbacks()                     // removes callbacks and gb_alignment
-{
+void ED4_terminal::remove_callbacks() {
     if (get_species_pointer()) {
         set_species_pointer(0);
         tflag.deleted = 1; // @@@ why ?
         clr_property(PROP_CURSOR_ALLOWED);
         request_refresh();
     }
-    return ED4_R_OK;
 }
 
 #if 0
@@ -329,31 +327,6 @@ ED4_returncode ED4_terminal::kill_object() {
     }
 
     return ED4_R_OK;
-}
-
-ED4_base *ED4_terminal::get_competent_clicked_child(AW_pos /* x */, AW_pos /* y */, ED4_properties /* relevant_prop */)
-{
-    e4_assert(0);
-    return NULL;
-}
-
-ED4_returncode   ED4_terminal::handle_move(ED4_move_info * /* moveinfo */)
-{
-    e4_assert(0);
-    return ED4_R_IMPOSSIBLE;
-}
-
-ED4_returncode  ED4_terminal::move_requested_by_child(ED4_move_info * /* moveinfo */)
-{
-    e4_assert(0);
-    return ED4_R_IMPOSSIBLE;
-}
-
-
-ED4_base *ED4_terminal::get_competent_child(AW_pos /* x */, AW_pos /* y */, ED4_properties /* relevant_prop */)
-{
-    e4_assert(0);
-    return NULL;
 }
 
 ED4_returncode ED4_terminal::draw_drag_box(AW_pos x, AW_pos y, GB_CSTR text, int cursor_y) {
@@ -406,11 +379,6 @@ ED4_returncode ED4_terminal::draw_drag_box(AW_pos x, AW_pos y, GB_CSTR text, int
     }
 
     return ED4_R_OK;
-}
-
-ED4_returncode  ED4_terminal::move_requested_by_parent(ED4_move_info *) { // handles a move request coming from parent
-    e4_assert(0);
-    return (ED4_R_IMPOSSIBLE);
 }
 
 void ED4_multi_species_manager::toggle_selected_species() {
