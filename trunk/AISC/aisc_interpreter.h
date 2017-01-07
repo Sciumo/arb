@@ -1,6 +1,6 @@
 // ================================================================ //
 //                                                                  //
-//   File      : aisc.h                                             //
+//   File      : aisc_interpreter.h                                 //
 //   Purpose   :                                                    //
 //                                                                  //
 //   Institute of Microbiology (Technical University Munich)        //
