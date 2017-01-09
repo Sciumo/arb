@@ -1101,7 +1101,7 @@ AP_FLOAT AP_tree_nlen::nn_interchange_rec(EdgeSpec whichEdges, AP_BL_MODE mode) 
     return edgeTo(get_father())->nni_rec(whichEdges, mode, get_father(), false);
 }
 
-inline CONSTEXPR_RETURN AP_TREE_SIDE idx2side(const int idx) {
+CONSTEXPR_INLINE AP_TREE_SIDE idx2side(const int idx) {
     return idx&1 ? AP_RIGHT : AP_LEFT;
 }
 

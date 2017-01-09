@@ -2251,7 +2251,7 @@ enum SpeciesCreationMode {
 };
 
 #if defined(ASSERTION_USED)
-CONSTEXPR_RETURN inline bool valid(SpeciesCreationMode m) { return m>=CREATE_NEW_SPECIES && m<=COPY_SPECIES; }
+CONSTEXPR_INLINE bool valid(SpeciesCreationMode m) { return m>=CREATE_NEW_SPECIES && m<=COPY_SPECIES; }
 #endif
 
 extern ST_ML *st_ml;

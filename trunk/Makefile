@@ -773,14 +773,20 @@ ifeq ($(DEBIAN),1)
  cxxflags += $(CPPFLAGS)
 endif
 
-ifeq ('$(USE_GCC_47_OR_HIGHER)','yes')
- cxxflags += -std=gnu++11# see also TEMPLATES/cxxforward.h@USE_Cxx11
+ifeq ('$(USE_CLANG)','1')
+# none of the following standards works with clang3.3 (under linux) => dont use standard (as done before r15516)
+#  cxxflags += -std=gnu++11
+#  cxxflags += -std=gnu++0x
 else
-# only use for gcc versions between 4.3 and <4.7 (4.7++ adds -Wc++11-compat above)
- HAVE_GNUPP0X=`SOURCE_TOOLS/requireVersion.pl 4.3 $(COMPILER_VERSION)`
- ifeq ($(HAVE_GNUPP0X),1)
-# ensure compatibility with upcoming C++ standard
-  cxxflags += -std=gnu++0x
+ ifeq ('$(USE_GCC_60_OR_HIGHER)','yes')
+  cxxflags += -std=gnu++14# see also TEMPLATES/cxxforward.h@USE_Cxx14
+ else
+  ifeq ('$(USE_GCC_47_OR_HIGHER)','yes')
+   cxxflags += -std=gnu++11# see also TEMPLATES/cxxforward.h@USE_Cxx11
+  else
+#  gcc versions between 4.3 (lowest supported) and <4.7
+   cxxflags += -std=gnu++0x
+  endif
  endif
 endif
 
@@ -1025,13 +1031,17 @@ ifeq ('$(COMPILER_VERSION_ALLOWED)', '')
 		@echo '      a different version of gcc)'
 		$(error Unsupported compiler '$(COMPILER_NAME)' version '$(COMPILER_VERSION)')
 else
-ifeq ($(COMPILER_BROKEN),1)
+ ifeq ($(COMPILER_BROKEN),1)
 		$(error $(COMPILER_NAME) version '$(COMPILER_VERSION_ALLOWED)' would build a broken ARB version. Compilation refused)
-else
+ else
 		@echo "  - Supported $(COMPILER_NAME) version '$(COMPILER_VERSION_ALLOWED)' detected - fine!"
 		@echo ''
+  ifeq ($(USE_CLANG),1)
+		@echo "Dump clang version:"
+		$(A_CXX) -v
+  endif
 		$(MAKE) check_same_GCC_VERSION
-endif
+ endif
 endif
 
 #---------------------- check ARBHOME

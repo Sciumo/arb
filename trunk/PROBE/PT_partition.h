@@ -51,7 +51,7 @@
 #define STAGE1_BYTES_PER_BASE       (STAGE1_INDEX_BYTES_PER_BASE       + STAGE1_OTHER_BYTES_PER_BASE)
 #define STAGE1_EXTRA_MB             (STAGE1_INDEX_EXTRA_MB             + STAGE1_OTHER_EXTRA_MB)
 
-inline ULONG estimate_stage1_memusage_kb(ULONG all_bp, ULONG partition_bp) {
+CONSTEXPR_INLINE ULONG estimate_stage1_memusage_kb(ULONG all_bp, ULONG partition_bp) {
     return ULONG(STAGE1_BYTES_PER_PASS_OLIGO * partition_bp / 1024.0 +
                  STAGE1_BYTES_PER_BASE       * all_bp / 1024.0 +
                  STAGE1_EXTRA_MB             * 1024 +

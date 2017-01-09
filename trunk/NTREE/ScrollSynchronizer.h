@@ -29,7 +29,7 @@
 #endif
 
 
-inline bool valid_canvas_index(int idx) { return idx>=0 && idx<MAX_NT_WINDOWS; }
+CONSTEXPR_INLINE bool valid_canvas_index(int idx) { return idx>=0 && idx<MAX_NT_WINDOWS; }
 
 class timestamp {
     unsigned t;

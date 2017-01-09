@@ -50,10 +50,10 @@ class Phaser {
     float result_lower_bound; // = result of rephase(0.0)
     float result_upper_bound; // = result of rephase(1.0)
 
-    static inline bool CONSTEXPR_RETURN is_normalized(const float& f) {
+    static CONSTEXPR_INLINE bool is_normalized(const float& f) {
         return f>=0.0 && f<=1.0;
     }
-    static inline float CONSTEXPR_RETURN shift_and_wrap(const float& val, const float& shift, float wrapto) {
+    static CONSTEXPR_INLINE float shift_and_wrap(const float& val, const float& shift, float wrapto) {
         return shift>val ? val-shift+wrapto : val-shift;
     }
 

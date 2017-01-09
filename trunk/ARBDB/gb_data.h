@@ -102,7 +102,7 @@ struct gb_data_list {
     int        nheader;       // index of next new entry
 };
 
-inline gb_header_list *GB_DATA_LIST_HEADER(gb_data_list& dl) {
+CONSTEXPR_INLINE gb_header_list *GB_DATA_LIST_HEADER(gb_data_list& dl) {
     return GB_RESOLVE(gb_header_list *, (&(dl)), rel_header);
 }
 inline void SET_GB_DATA_LIST_HEADER(gb_data_list& dl, gb_header_list *head) {
@@ -268,10 +268,10 @@ public:
 // ----------------------
 //      parent access
 
-inline GBCONTAINER* GB_FATHER(GBDATA *gbd)  { return GB_RESOLVE(GBCONTAINER*, gbd, rel_father); }
-inline GBCONTAINER* GB_GRANDPA(GBDATA *gbd) { return GB_FATHER(GB_FATHER(gbd)); }
+CONSTEXPR_INLINE GBCONTAINER* GB_FATHER(GBDATA *gbd)  { return GB_RESOLVE(GBCONTAINER*, gbd, rel_father); }
+CONSTEXPR_INLINE GBCONTAINER* GB_GRANDPA(GBDATA *gbd) { return GB_FATHER(GB_FATHER(gbd)); }
 
-inline void SET_GB_FATHER(GBDATA *gbd, GBCONTAINER *father) { GB_SETREL(gbd, rel_father, father); }
+CONSTEXPR_INLINE_Cxx14 void SET_GB_FATHER(GBDATA *gbd, GBCONTAINER *father) { GB_SETREL(gbd, rel_father, father); }
 
 GBCONTAINER *GBDATA::get_father() {
     // like GB_FATHER, but returns NULL for root_container

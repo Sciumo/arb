@@ -17,7 +17,7 @@
 #endif
 
 template <typename T>
-inline const T& force_in_range(const T& lower_bound, const T& value, const T& upper_bound) {
+CONSTEXPR_INLINE const T& force_in_range(const T& lower_bound, const T& value, const T& upper_bound) {
     return std::min(std::max(lower_bound, value), upper_bound);
 }
 
