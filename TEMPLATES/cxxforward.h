@@ -26,7 +26,7 @@
 #   else
 #    if (__cplusplus == 201402L)
 #     define ARB_ENABLE_Cxx11_FEATURES
-// #     define ARB_ENABLE_Cxx14_FEATURES // not needed yet
+#     define ARB_ENABLE_Cxx14_FEATURES
 #    else
 #     error Unknown C++ standard defined in __cplusplus
 #    endif
@@ -37,8 +37,25 @@
 # warning C compilation includes cxxforward.h
 #endif
 
-#ifdef ARB_ENABLE_Cxx11_FEATURES
 
+#ifdef ARB_ENABLE_Cxx14_FEATURES
+// C++14 is enabled starting with gcc 6.1 in ../Makefile@USE_Cxx14
+//
+// Use #ifdef Cxx14 to insert conditional sections using full C++14
+# define Cxx14 1
+
+// C++14 allows more complex constexpr functions (e.g. multiple commands; void return type)
+# define CONSTEXPR_INLINE_Cxx14 constexpr inline
+
+#else
+// backward (non C++14) compatibility defines:
+
+# define CONSTEXPR_INLINE_Cxx14 inline
+
+#endif
+
+
+#ifdef ARB_ENABLE_Cxx11_FEATURES
 // C++11 is enabled starting with gcc 4.7 in ../Makefile@USE_Cxx11
 //
 // Full support for C++11 is available starting with gcc 4.8.
@@ -49,7 +66,7 @@
 
 // allows static member initialisation in class definition:
 # define CONSTEXPR        constexpr
-# define CONSTEXPR_RETURN constexpr
+# define CONSTEXPR_INLINE constexpr inline
 
 // allows to protect overloading functions against signature changes of overload functions:
 # define OVERRIDE override
@@ -59,15 +76,24 @@
 # define FINAL_TYPE     final
 # define FINAL_OVERRIDE final override
 
+
 #else
 // backward (non C++11) compatibility defines:
-# define CONSTEXPR        const
-# define CONSTEXPR_RETURN
+
+# if (GCC_VERSION_CODE >= 406)
+#  define CONSTEXPR        constexpr
+# else
+#  define CONSTEXPR        const
+# endif
+
+# define CONSTEXPR_INLINE  inline
 # define OVERRIDE
 # define FINAL_TYPE
 # define FINAL_OVERRIDE
 
 #endif
+
+// Note: additional (experimental) constexpr macros are defined in ../CORE/arb_assert.h@ASSERTING_CONSTEXPR_INLINE
 
 // allow to hide unwanted final suggestions
 #ifdef SUGGESTS_FINAL

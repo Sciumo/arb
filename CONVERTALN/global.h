@@ -88,13 +88,13 @@ public:
 
 // --------------------
 
-inline int min(int t1, int t2) { return t1<t2 ? t1 : t2; }
-inline int max(int t1, int t2) { return t1>t2 ? t1 : t2; }
+CONSTEXPR_INLINE int min(int t1, int t2) { return t1<t2 ? t1 : t2; }
+CONSTEXPR_INLINE int max(int t1, int t2) { return t1>t2 ? t1 : t2; }
 
-inline bool str_equal(const char *s1, const char *s2) { return strcmp(s1, s2) == 0; }
-inline bool str_iequal(const char *s1, const char *s2) { return strcasecmp(s1, s2) == 0; }
+CONSTEXPR_INLINE bool str_equal(const char *s1, const char *s2) { return strcmp(s1, s2) == 0; }
+CONSTEXPR_INLINE bool str_iequal(const char *s1, const char *s2) { return strcasecmp(s1, s2) == 0; }
 
-inline int str0len(const char *str) {
+CONSTEXPR_INLINE int str0len(const char *str) {
     return str ? strlen(str) : 0;
 }
 
@@ -105,25 +105,25 @@ inline char *strndup(const char *str, int len) {
     return result;
 }
 
-inline int count_spaces(const char *str) { return strspn(str, " "); }
+CONSTEXPR_INLINE int count_spaces(const char *str) { return strspn(str, " "); }
 
 inline bool occurs_in(char ch, const char *in) { ca_assert(ch != 0); return strchr(in, ch) != 0; }
 
-inline bool is_end_mark(char ch) { return ch == '.' || ch == ';'; }
+CONSTEXPR_INLINE bool is_end_mark(char ch) { return ch == '.' || ch == ';'; }
 
-inline bool is_sequence_terminator(const char *str) { return str[0] == '/' && str[1] == '/'; }
+CONSTEXPR_INLINE bool is_sequence_terminator(const char *str) { return str[0] == '/' && str[1] == '/'; }
 
 #define WORD_SEP ",.; ?:!)]}"
 
 inline bool is_gapchar(char ch) { return occurs_in(ch, "-.~"); }
 inline bool is_word_char(char ch) { return !occurs_in(ch, WORD_SEP); }
 
-inline bool has_no_content(const char *field) {
+CONSTEXPR_INLINE bool has_no_content(const char *field) {
     return !field ||
         !field[0] ||
         (field[0] == '\n' && !field[1]);
 }
-inline bool has_content(const char *field) { return !has_no_content(field); }
+CONSTEXPR_INLINE bool has_content(const char *field) { return !has_no_content(field); }
 
 inline char *no_content() {
     char *nothing = ARB_alloc<char>(2);

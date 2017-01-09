@@ -248,6 +248,10 @@ inline void provoke_core_dump() {
 #define RUNNING_TEST() false
 #endif
 
+#ifndef CXXFORWARD_H
+#include <cxxforward.h>
+#endif
+
 // ------------------------------------------------------------
 // logical operators (mostly used for assertions)
 
@@ -255,8 +259,8 @@ inline void provoke_core_dump() {
 #define implicated(hypothesis,conclusion) (!(hypothesis) || !!(conclusion))
 
 #ifdef __cplusplus
-inline bool correlated(bool hypo1, bool hypo2) { return implicated(hypo1, hypo2) == implicated(hypo2, hypo1); } // equivalence!
-inline bool contradicted(bool hypo1, bool hypo2) { return !correlated(hypo1, hypo2); } // non-equivalence!
+CONSTEXPR_INLINE bool correlated(bool hypo1, bool hypo2) { return implicated(hypo1, hypo2) == implicated(hypo2, hypo1); } // equivalence!
+CONSTEXPR_INLINE bool contradicted(bool hypo1, bool hypo2) { return !correlated(hypo1, hypo2); } // non-equivalence!
 #endif
 
 // ------------------------------------------------------------
@@ -282,6 +286,17 @@ inline bool contradicted(bool hypo1, bool hypo2) { return !correlated(hypo1, hyp
 #else
 # define IF_MOTIF(x)
 # define IF_GTK(x)   x
+#endif
+
+// ------------------------------------------------------------
+// assertion tolerant constexpr modifiers
+
+#if defined(ASSERTION_USED)
+# define ASSERTING_CONSTEXPR_INLINE       inline
+# define ASSERTING_CONSTEXPR_INLINE_Cxx14 inline
+#else // !ASSERTION_USED
+# define ASSERTING_CONSTEXPR_INLINE       CONSTEXPR_INLINE
+# define ASSERTING_CONSTEXPR_INLINE_Cxx14 CONSTEXPR_INLINE_Cxx14
 #endif
 
 // ------------------------------------------------------------

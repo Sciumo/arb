@@ -47,22 +47,22 @@ enum GBT_ORDER_MODE {
 
 enum TreeModel { ROOTED = 0, UNROOTED = 1 };
 
-inline CONSTEXPR_RETURN int nodes_2_edges(int nodes) { return nodes-1; }
-inline CONSTEXPR_RETURN int edges_2_nodes(int nodes) { return nodes+1; }
+CONSTEXPR_INLINE int nodes_2_edges(int nodes) { return nodes-1; }
+CONSTEXPR_INLINE int edges_2_nodes(int nodes) { return nodes+1; }
 
-inline CONSTEXPR_RETURN int leafs_2_nodes(int leafs, TreeModel model) {
+CONSTEXPR_INLINE int leafs_2_nodes(int leafs, TreeModel model) {
     //! calculate the number of nodes (leaf- plus inner-nodes) in a tree with 'leafs' leafs
     return 2*leafs-1-int(model);
 }
-inline CONSTEXPR_RETURN int nodes_2_leafs(int nodes, TreeModel model) {
+CONSTEXPR_INLINE int nodes_2_leafs(int nodes, TreeModel model) {
     //! calculate the number of leafs in a tree with 'nodes' nodes
     return (nodes+1+int(model))/2;
 }
-inline CONSTEXPR_RETURN int leafs_2_edges(int leafs, TreeModel model) {
+CONSTEXPR_INLINE int leafs_2_edges(int leafs, TreeModel model) {
     //! calculate the number of edges in a tree with 'leafs' leafs
     return nodes_2_edges(leafs_2_nodes(leafs, model));
 }
-inline CONSTEXPR_RETURN int edges_2_leafs(int edges, TreeModel model) {
+CONSTEXPR_INLINE int edges_2_leafs(int edges, TreeModel model) {
     //! calculate the number of leafs in a tree with 'edges' edges
     return nodes_2_leafs(edges_2_nodes(edges), model);
 }

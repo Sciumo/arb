@@ -161,24 +161,26 @@ public:
 // NAN/INF checks
 // replace c99 macros isnan, isnormal and isinf. isinf is broken for gcc 4.4.3; see ../CORE/arb_diff.cxx@isinf
 
-template <typename T> inline bool is_nan(const T& n) { return n != n; }
-template <typename T> inline bool is_nan_or_inf(const T& n) { return is_nan(0*n); }
-template <typename T> inline bool is_normal(const T& n) { return n != 0 && !is_nan_or_inf(n); }
-template <typename T> inline bool is_inf(const T& n) { return !is_nan(n) && is_nan_or_inf(n); }
+template <typename T> CONSTEXPR_INLINE bool is_nan(const T& n) { return n != n; }
+template <typename T> CONSTEXPR_INLINE bool is_nan_or_inf(const T& n) { return is_nan(0*n); }
+template <typename T> CONSTEXPR_INLINE bool is_normal(const T& n) { return n != 0 && !is_nan_or_inf(n); }
+template <typename T> CONSTEXPR_INLINE bool is_inf(const T& n) { return !is_nan(n) && is_nan_or_inf(n); }
 
-inline int double_cmp(const double d1, const double d2) {
-    /*! returns <0 if d1<d2, >0 if d1>d2 (i.e. this function behaves like strcmp) */
-    double d = d1-d2;
+CONSTEXPR_INLINE int double_diff_2_cmp(const double d) {
     return d<0 ? -1 : (d>0 ? 1 : 0);
+}
+CONSTEXPR_INLINE int double_cmp(const double d1, const double d2) {
+    /*! returns <0 if d1<d2, >0 if d1>d2 (i.e. this function behaves like strcmp) */
+    return double_diff_2_cmp(d1-d2);
 }
 
 template <typename NUM>
-inline int calc_digits(NUM val) {
+CONSTEXPR_INLINE int calc_digits(NUM val) {
     /*! calculate output length of val (w/o sign) */
     return val ? log10(val)+1 : 1;
 }
 template <typename NUM>
-inline int calc_signed_digits(NUM val) {
+CONSTEXPR_INLINE int calc_signed_digits(NUM val) {
     /*! calculate output length of val (with sign) */
     return val<0 ? calc_digits(-val)+1 : calc_digits(val);
 }

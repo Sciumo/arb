@@ -23,8 +23,8 @@
 // Only while showing positions to the user, we use [1..N] (as well in displayed AWARs).
 // Please use the following functions to make the conversion explicit:
 
-inline int bio2info(int biopos) { arb_assert(biopos >= 1); return biopos-1; }
-inline int info2bio(int infopos) { arb_assert(infopos >= 0); return infopos+1; }
+ASSERTING_CONSTEXPR_INLINE int bio2info(int biopos) { arb_assert(biopos >= 1); return biopos-1; }
+ASSERTING_CONSTEXPR_INLINE int info2bio(int infopos) { arb_assert(infopos >= 0); return infopos+1; }
 
 
 #else

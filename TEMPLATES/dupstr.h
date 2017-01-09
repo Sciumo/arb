@@ -32,6 +32,9 @@
 #ifndef _GLIBCXX_CSTDLIB
 #include <cstdlib>
 #endif
+#ifndef CXXFORWARD_H
+#include "cxxforward.h"
+#endif
 
 #ifdef __cplusplus
 
@@ -61,7 +64,7 @@ inline void reassign(char *& dstvar, char *& srcvar) {
 #endif // __cplusplus
 
 // helper to use char as array index:
-inline unsigned char safeCharIndex(char c) { return static_cast<unsigned char>(c); }
+CONSTEXPR_INLINE unsigned char safeCharIndex(char c) { return static_cast<unsigned char>(c); }
 
 struct charpLess { // sort type for set<char*> / map<char*, ...>
     bool operator()(const char *n1, const char *n2) const {

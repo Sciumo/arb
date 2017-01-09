@@ -56,7 +56,7 @@ using std::string;
 static void aw_create_color_chooser_window(AW_window *aww, const char *awar_name, const char *color_description);
 static void aw_create_font_chooser_window(AW_window *aww, const char *gc_base_name, const struct gc_desc *gcd);
 
-CONSTEXPR_RETURN inline bool valid_color_group(int color_group) {
+CONSTEXPR_INLINE bool valid_color_group(int color_group) {
     return color_group>0 && color_group<=AW_COLOR_GROUPS;
 }
 

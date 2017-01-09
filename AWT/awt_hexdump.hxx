@@ -29,7 +29,7 @@
 // -------------------
 //      hex dumper
 
-inline char nibble2hex(unsigned char c) { return "0123456789ABCDEF"[c&0x0f]; }
+CONSTEXPR_INLINE char nibble2hex(unsigned char c) { return "0123456789ABCDEF"[c&0x0f]; }
 inline void dump_hexbyte(GBS_strstruct& buf, unsigned char c) { buf.put(nibble2hex(c>>4)); buf.put(nibble2hex(c)); }
 
 class MemDump {

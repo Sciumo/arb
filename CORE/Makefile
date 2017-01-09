@@ -229,6 +229,7 @@ arb_sort.o: arb_assert.h
 arb_sort.o: arb_core.h
 arb_sort.o: arb_sort.h
 arb_sort.o: $(ARBHOME)/INCLUDE/attributes.h
+arb_sort.o: $(ARBHOME)/INCLUDE/cxxforward.h
 arb_sort.o: $(ARBHOME)/INCLUDE/dupstr.h
 arb_sort.o: $(ARBHOME)/INCLUDE/gccver.h
 arb_sort.o: $(ARBHOME)/INCLUDE/test_global.h

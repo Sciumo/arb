@@ -77,4 +77,6 @@ trnsprob.o: mem.h
 trnsprob.o: trnsprob.h
 trnsprob.o: $(ARBHOME)/INCLUDE/arb_assert.h
 trnsprob.o: $(ARBHOME)/INCLUDE/arb_simple_assert.h
+trnsprob.o: $(ARBHOME)/INCLUDE/cxxforward.h
+trnsprob.o: $(ARBHOME)/INCLUDE/gccver.h
 trnsprob.o: $(ARBHOME)/INCLUDE/test_global.h

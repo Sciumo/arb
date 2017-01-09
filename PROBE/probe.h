@@ -90,14 +90,13 @@ enum PT_base {
     PT_B_UNDEF,
 };
 
-inline bool is_std_base     (char b) { return b >= PT_A && b <= PT_T; }
-inline bool is_std_base_or_N(char b) { return b >= PT_N && b <= PT_T; }
-inline bool is_ambig_base   (char b) { return b == PT_QU || b == PT_N; }
-inline bool is_valid_base   (char b) { return b >= PT_QU && b < PT_BASES; }
+CONSTEXPR_INLINE bool is_std_base     (char b) { return b >= PT_A && b <= PT_T; }
+CONSTEXPR_INLINE bool is_std_base_or_N(char b) { return b >= PT_N && b <= PT_T; }
+CONSTEXPR_INLINE bool is_ambig_base   (char b) { return b == PT_QU || b == PT_N; }
+CONSTEXPR_INLINE bool is_valid_base   (char b) { return b >= PT_QU && b < PT_BASES; }
 
-inline char base_2_readable(char base) {
-    static char table[] = ".NACGU";
-    return base<PT_BASES ? table[safeCharIndex(base)] : base;
+CONSTEXPR_INLINE char base_2_readable(char base) {
+    return base<PT_BASES ? ".NACGU"[safeCharIndex(base)] : base;
 }
 
 inline char *probe_2_readable(char *id_string, int len) {

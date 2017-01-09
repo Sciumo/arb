@@ -32,10 +32,11 @@ typedef unsigned int PELEM;
 class PART;
 
 #if defined(ASSERTION_USED)
-inline bool is_similar(double d1, double d2, double eps) {
-    double diff = d1-d2;
-    if (diff<0) diff = -diff;
-    return diff<eps;
+CONSTEXPR_INLINE bool diff_smaller_epsilon(double d, double eps) {
+    return abs(d)<eps;
+}
+CONSTEXPR_INLINE bool is_similar(double d1, double d2, double eps) {
+    return diff_smaller_epsilon(d1-d2, eps);
 }
 #endif
 

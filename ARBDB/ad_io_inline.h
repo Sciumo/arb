@@ -16,7 +16,7 @@
 #include <static_assert.h>
 #endif
 
-inline void swap(unsigned char& c1, unsigned char& c2) { unsigned char c = c1; c1 = c2; c2 = c; }
+CONSTEXPR_INLINE_Cxx14 void swap(unsigned char& c1, unsigned char& c2) { unsigned char c = c1; c1 = c2; c2 = c; }
 
 inline uint32_t reverse_byteorder(uint32_t val) {
     union {

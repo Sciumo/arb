@@ -36,7 +36,7 @@
 #define MODE_TEXT_PLACEHOLDER()       MT_MODE("PLACEHOLDER") "  (reserved)"
 
 inline const char *no_mode_text_defined() {
-    arb_assert(0); // pleae define an infotext for current mode in caller
+    arb_assert(0); // please define an infotext for current mode in caller
     return "No help for this mode available";
 }
 

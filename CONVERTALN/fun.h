@@ -25,7 +25,7 @@ enum Format {
     UNKNOWN,
 };
 
-inline bool is_input_format(Format inType) { return inType <= LAST_INPUT_FORMAT; }
+CONSTEXPR_INLINE bool is_input_format(Format inType) { return inType <= LAST_INPUT_FORMAT; }
 
 class Reader;
 class Writer;

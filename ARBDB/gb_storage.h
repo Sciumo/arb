@@ -15,7 +15,7 @@
 #include "gb_data.h"
 #endif
 
-inline bool store_inside_entry(int size, int memsize) {
+CONSTEXPR_INLINE bool store_inside_entry(int size, int memsize) {
     // returns true if data can be stored inside GBENTRY
     return size<256 && memsize<SIZOFINTERN;
 }
