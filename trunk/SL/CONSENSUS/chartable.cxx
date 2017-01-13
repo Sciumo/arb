@@ -1198,6 +1198,7 @@ void BaseFrequencies::test() const {
 #ifndef TEST_UNIT_H
 #include <test_unit.h>
 #endif
+#include <arbdb.h>
 
 #define SETUP(gapChars,alitype) BaseFrequencies::setup(gapChars,alitype)
 
@@ -1218,16 +1219,21 @@ void TEST_char_table() {
     // BK.lower = 70; BK.upper = 95; BK.gapbound = 60; // defaults from awars
     BK.lower    = 40; BK.upper = 70; BK.gapbound = 40;
 
-    srand(100);
-    for (int loop = 0; loop<5; ++loop) {
-        unsigned seed = rand();
+    const int LOOPS = 5;
+    GB_random_seed(100);
 
-        srand(seed);
+    int seed[LOOPS];
+    for (int loop = 0; loop<5; ++loop) {
+        seed[loop] = GB_random(INT_MAX);
+    }
+
+    for (int loop = 0; loop<5; ++loop) {
+        GB_random_seed(seed[loop]);
 
         BaseFrequencies tab(seqlen);
 
         // build some seq
-        for (int c = 0; c<seqlen; ++c) seq[c] = alphabeth[rand()%alphabeth_size];
+        for (int c = 0; c<seqlen; ++c) seq[c] = alphabeth[GB_random(alphabeth_size)];
         seq[seqlen]                           = 0;
 
         TEST_EXPECT_EQUAL(strlen(seq), size_t(seqlen));
@@ -1244,8 +1250,8 @@ void TEST_char_table() {
             added_seqs[a] = strdup(seq);
 
             // modify 1 character in seq:
-            int sidx  = rand()%seqlen;
-            int aidx  = rand()%alphabeth_size;
+            int sidx  = GB_random(seqlen);
+            int aidx  = GB_random(alphabeth_size);
             seq[sidx] = alphabeth[aidx];
 
             if (a == 16) { // with 15 sequences in tab
@@ -1270,13 +1276,13 @@ void TEST_char_table() {
         // Note: semantic tests for consensus are in ../../NTREE/AP_consensus.cxx@TEST_nucleotide_consensus_and_maxFrequency
         {
             char *consensus = tab.build_consensus_string(BK);
-            switch (seed) {
-                case 677741240: TEST_EXPECT_EQUAL(consensus, "k-s-cWs.aWu.a.WYa.R.mKcaK.c.ry"); break;
-                case 721151648: TEST_EXPECT_EQUAL(consensus, "awm...Ka.-gUyRW-Sacau.Wa.acy.W"); break;
-                case 345295160: TEST_EXPECT_EQUAL(consensus, "yy-gmwkMS....gucy..Y.Rrr.-gg.K"); break;
-                case 346389111: TEST_EXPECT_EQUAL(consensus, "suwA.yYwSurKc-cSmRaY.mg.Sa-kY."); break;
-                case 367171911: TEST_EXPECT_EQUAL(consensus, ".augaY.u.c-c-cUDaYg.-.cg-cWWsM"); break;
-                default: TEST_EXPECT_EQUAL(consensus, "undef");
+            switch (seed[loop]) {
+                case 1080710223: TEST_EXPECT_EQUAL(consensus, "W.gKyc.sR.urSkGcy.kuy......RY-"); break;
+                case  290469779: TEST_EXPECT_EQUAL(consensus, ".u-SW.Mgcu.uw-uu..-mmb.sgcRuY."); break;
+                case  346019116: TEST_EXPECT_EQUAL(consensus, "y-m.-Suy.c.-u.-g-y.cWgr.cyGrgY"); break;
+                case 1708473987: TEST_EXPECT_EQUAL(consensus, ".K.Kc--.cakyw.uW..a-.guuggwH-a"); break;
+                case 2080862653: TEST_EXPECT_EQUAL(consensus, ".sgaR..--.uu.cMuuycsk-u.cu.Wc."); break;
+                default: TEST_EXPECTATION(all().of(that(consensus).is_equal_to("undef"), that(seed[loop]).is_equal_to(-1))); // default case is unwanted (logs data -> want one case above for each pair)
             }
 
             // test sub_and_add()

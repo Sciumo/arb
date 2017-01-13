@@ -874,6 +874,7 @@ admath.o: $(ARBHOME)/INCLUDE/dupstr.h
 admath.o: $(ARBHOME)/INCLUDE/gccver.h
 admath.o: $(ARBHOME)/INCLUDE/smartptr.h
 admath.o: $(ARBHOME)/INCLUDE/test_global.h
+admath.o: $(ARBHOME)/INCLUDE/test_unit.h
 
 adname.o: ad_colorset.h
 adname.o: ad_config.h

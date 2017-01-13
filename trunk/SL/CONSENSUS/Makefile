@@ -32,11 +32,15 @@ depend.init:
 
 chartable.o: chartable.h
 chartable.o: consensus.h
+chartable.o: $(ARBHOME)/INCLUDE/ad_prot.h
 chartable.o: $(ARBHOME)/INCLUDE/arb_assert.h
 chartable.o: $(ARBHOME)/INCLUDE/arb_core.h
 chartable.o: $(ARBHOME)/INCLUDE/arb_defs.h
+chartable.o: $(ARBHOME)/INCLUDE/arb_error.h
 chartable.o: $(ARBHOME)/INCLUDE/arb_mem.h
 chartable.o: $(ARBHOME)/INCLUDE/arb_msg.h
+chartable.o: $(ARBHOME)/INCLUDE/arb_string.h
+chartable.o: $(ARBHOME)/INCLUDE/arbdb.h
 chartable.o: $(ARBHOME)/INCLUDE/arbdb_base.h
 chartable.o: $(ARBHOME)/INCLUDE/arbtools.h
 chartable.o: $(ARBHOME)/INCLUDE/attributes.h
@@ -46,5 +50,6 @@ chartable.o: $(ARBHOME)/INCLUDE/dupstr.h
 chartable.o: $(ARBHOME)/INCLUDE/gccver.h
 chartable.o: $(ARBHOME)/INCLUDE/iupac.h
 chartable.o: $(ARBHOME)/INCLUDE/pos_range.h
+chartable.o: $(ARBHOME)/INCLUDE/smartptr.h
 chartable.o: $(ARBHOME)/INCLUDE/test_global.h
 chartable.o: $(ARBHOME)/INCLUDE/test_unit.h
