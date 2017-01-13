@@ -2588,10 +2588,10 @@ void TEST_prot_tree_modifications() {
 
     TEST_EXPECT_SAVED_TOPOLOGY(env, "prot-initial");
 
-    const unsigned mixseed = 1422292802;
+    const unsigned mixseed = 8164724;
 
-    const int PARSIMONY_MIXED       = PARSIMONY_ORG + 1207;
-    const int PARSIMONY_NNI_MARKED  = PARSIMONY_ORG + 1125;
+    const int PARSIMONY_MIXED       = PARSIMONY_ORG + 1519;
+    const int PARSIMONY_NNI_MARKED  = PARSIMONY_ORG + 1053;
     const int PARSIMONY_NNI_ALL     = PARSIMONY_ORG;
     const int PARSIMONY_OPTI_MARKED = PARSIMONY_ORG;
     const int PARSIMONY_OPTI_ALL    = PARSIMONY_ORG; // no gain (initial tree already is optimized)
@@ -2601,12 +2601,12 @@ void TEST_prot_tree_modifications() {
 
     GB_random_seed(mixseed);
     TEST_EXPECTATION(modifyingTopoResultsIn(MOD_MIX_TREE, "prot-mixed", PARSIMONY_MIXED, env, false));
-    TEST_EXPECT_COMBINES_PERFORMED(env, 90);
+    TEST_EXPECT_COMBINES_PERFORMED(env, 89);
 
     {
         env.push();
         TEST_EXPECTATION(movingRootDoesntAffectCosts(PARSIMONY_MIXED));
-        TEST_EXPECT_COMBINES_PERFORMED(env, 232);
+        TEST_EXPECT_COMBINES_PERFORMED(env, 234);
         env.pop();
     }
 
@@ -2627,7 +2627,7 @@ void TEST_prot_tree_modifications() {
     // test branchlength calculation
     // (optimizations below implicitely recalculates branchlengths)
     TEST_EXPECTATION(modifyingTopoResultsIn(MOD_CALC_LENS, "prot-calclength", PARSIMONY_MIXED, env, false));
-    TEST_EXPECT_COMBINES_PERFORMED(env, 80);
+    TEST_EXPECT_COMBINES_PERFORMED(env, 79);
 
     // test whether branchlength calculation depends on root-position
     {
@@ -2658,10 +2658,10 @@ void TEST_prot_tree_modifications() {
     }
 
     TEST_EXPECTATION(modifyingTopoResultsIn(MOD_OPTI_NNI, "prot-opti-NNI", PARSIMONY_NNI_MARKED, env, true)); // test recursive NNI
-    TEST_EXPECT_COMBINES_PERFORMED(env, 165);
+    TEST_EXPECT_COMBINES_PERFORMED(env, 246);
 
     TEST_EXPECTATION(modifyingTopoResultsIn(MOD_OPTI_GLOBAL, "prot-opti-marked-global", PARSIMONY_OPTI_MARKED, env, true)); // test recursive NNI+KL
-    TEST_EXPECT_COMBINES_PERFORMED(env, 2535);
+    TEST_EXPECT_COMBINES_PERFORMED(env, 2810);
 
     // -----------------------------
     //      test optimize (all)
@@ -2677,18 +2677,18 @@ void TEST_prot_tree_modifications() {
     // test branchlength calculation
     // (optimizations below implicitely recalculates branchlengths)
     TEST_EXPECTATION(modifyingTopoResultsIn(MOD_CALC_LENS, "prot-calclength", PARSIMONY_MIXED, env, false));
-    TEST_EXPECT_COMBINES_PERFORMED(env, 80);
+    TEST_EXPECT_COMBINES_PERFORMED(env, 79);
 
     TEST_EXPECTATION(modifyingTopoResultsIn(MOD_OPTI_NNI, "prot-opti-all-NNI", PARSIMONY_NNI_ALL, env, true)); // test recursive NNI
-    TEST_EXPECT_COMBINES_PERFORMED(env, 365);
+    TEST_EXPECT_COMBINES_PERFORMED(env, 359);
 
     {
         env.push();
         TEST_EXPECTATION(modifyingTopoResultsIn(MOD_OPTI_GLOBAL, "prot-opti-global", PARSIMONY_OPTI_ALL, env, false)); // test recursive NNI+KL
-        TEST_EXPECT_COMBINES_PERFORMED(env, 2049);
+        TEST_EXPECT_COMBINES_PERFORMED(env, 1690);
 
         TEST_EXPECTATION(movingRootDoesntAffectCosts(PARSIMONY_OPTI_ALL));
-        TEST_EXPECT_COMBINES_PERFORMED(env, 254);
+        TEST_EXPECT_COMBINES_PERFORMED(env, 215);
         env.pop();
     }
 }
@@ -2942,7 +2942,14 @@ void TEST_node_stack() {
         TEST_EXPECT_VALID_TREE(env.root_node());
     }
 
-    TEST_EXPECT_COMBINES_PERFORMED_DIFFERS_IF_SANITIZED(env, 3334, 3338);
+    // @@@ Warning: the number of combines performed in the section above behaves weird!
+    //  - encountered values: 3334 and 3338
+    //  - no idea what conditions lead to which value = > accept both values (until somebody has some inspiration)
+    {
+        int combines_performed_above = env.combines_performed();
+        TEST_EXPECTATION(exactly(1).of(that(combines_performed_above).is_equal_to(3334),
+                                       that(combines_performed_above).is_equal_to(3338)));
+    }
 }
 
 void TEST_node_edge_resources() {
