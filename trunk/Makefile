@@ -357,7 +357,13 @@ ifeq ($(USE_CLANG),1)
 # -Wunused-private-field report too many false positives (currently ~ 2 of 3)
 # -Wstring-plus-int warns about common ARB coding practice
 # -Wgnu-static-float-init warns about accepted GNU extension
- extended_cpp_warnings += -Wno-mismatched-tags -Wno-char-subscripts -Wno-unused-private-field -Wno-string-plus-int -Wno-gnu-static-float-init
+ extended_cpp_warnings += -Wno-mismatched-tags -Wno-char-subscripts -Wno-unused-private-field -Wno-string-plus-int
+ ifeq ('$(COMPILER_VERSION)','4.2.1')
+# jenkins build (doesn't know switch -Wno-gnu-static-float-init)
+  extended_cpp_warnings += -Wno-gnu
+ else
+  extended_cpp_warnings += -Wno-gnu-static-float-init
+ endif
 endif
 
 #---------------------- developer
@@ -2383,69 +2389,67 @@ UNITS_NEED_FIX = \
 UNITS_UNTESTABLE_ATM = \
 	XML_IMPORT/XML_IMPORT.test \
 
-# for the moment, put all units containing tests into UNITS_TESTED or UNITS_TESTED_FIRST
+# for the moment, put all units containing tests into the following 4 sections (see also TESTED_UNITS below)
 
 UNITS_TESTED_FIRST = \
-	SL/ITEM_SHADER/ITEM_SHADER.test \
-	PROBE_SET/fb_test.test \
-	SL/ITEMS/ITEMS.test \
-	SL/CONSENSUS/CONSENSUS.test \
-	DIST/DIST.test \
-	PARSIMONY/PARSIMONY.test \
-	EDIT4/EDIT4.test \
-	NTREE/NTREE.test \
-	MULTI_PROBE/MULTI_PROBE.test \
 
 # plain test-libaries not linked anywhere
 TEST_SANDBOXES = \
 	SL/CB/CB.test \
 
-UNITS_TESTED = \
-	SL/NEIGHBOURJOIN/NEIGHBOURJOIN.test \
-	SL/NDS/NDS.test \
-	ARB_GDE/ARB_GDE.test \
-	GENOM_IMPORT/GENOM_IMPORT.test \
-	SL/MACROS/MACROS.test \
-	SL/REGEXPR/REGEXPR.test \
-	SL/FILTER/FILTER.test \
+UNITS_RUNNING_LONG = \
 	ARBDB/libARBDB.test \
-	CONSENSUS_TREE/CONSENSUS_TREE.test \
-	TOOLS/arb_consensus_tree.test \
-	TOOLS/arb_test.test \
-	TOOLS/arb_probe.test \
-	PERLTOOLS/arb_proto_2_xsub.test \
 	AWTC/AWTC.test \
-	SL/ALILINK/ALILINK.test \
-	SL/TREE_READ/TREE_READ.test \
-	DBSERVER/DBSERVER.test \
-	AWT/libAWT.test \
-	CORE/libCORE.test \
-	SL/INSDEL/INSDEL.test \
-	SL/TREEDISP/TREEDISP.test \
-	AISC_MKPTPS/mkptypes.test \
-	MERGE/MERGE.test \
-	SERVERCNTRL/SERVERCNTRL.test \
-	SL/FAST_ALIGNER/FAST_ALIGNER.test \
-	SL/PRONUC/PRONUC.test \
-	WINDOW/libWINDOW.test \
-	HELP_SOURCE/arb_help2xml.test \
-	CONVERTALN/CONVERTALN.test \
-	SL/SEQIO/SEQIO.test \
-	SL/PTCLEAN/PTCLEAN.test \
-	PROBE/PROBE.test \
-	SL/DB_QUERY/DB_QUERY.test \
+	TOOLS/arb_test.test \
 
-TESTED_UNITS_MANUAL = \
-	$(TEST_SANDBOXES) \
+UNITS_TESTED = \
+	AISC_MKPTPS/mkptypes.test \
+	ARB_GDE/ARB_GDE.test \
+	AWT/libAWT.test \
+	CONSENSUS_TREE/CONSENSUS_TREE.test \
+	CONVERTALN/CONVERTALN.test \
+	CORE/libCORE.test \
+	DBSERVER/DBSERVER.test \
+	DIST/DIST.test \
+	EDIT4/EDIT4.test \
+	GENOM_IMPORT/GENOM_IMPORT.test \
+	HELP_SOURCE/arb_help2xml.test \
+	MERGE/MERGE.test \
+	MULTI_PROBE/MULTI_PROBE.test \
+	NTREE/NTREE.test \
+	PARSIMONY/PARSIMONY.test \
+	PERLTOOLS/arb_proto_2_xsub.test \
+	PROBE/PROBE.test \
+	PROBE_SET/fb_test.test \
+	SERVERCNTRL/SERVERCNTRL.test \
+	SL/ALILINK/ALILINK.test \
+	SL/CONSENSUS/CONSENSUS.test \
+	SL/DB_QUERY/DB_QUERY.test \
+	SL/FAST_ALIGNER/FAST_ALIGNER.test \
+	SL/FILTER/FILTER.test \
+	SL/INSDEL/INSDEL.test \
+	SL/ITEM_SHADER/ITEM_SHADER.test \
+	SL/ITEMS/ITEMS.test \
+	SL/MACROS/MACROS.test \
+	SL/NDS/NDS.test \
+	SL/NEIGHBOURJOIN/NEIGHBOURJOIN.test \
+	SL/PRONUC/PRONUC.test \
+	SL/PTCLEAN/PTCLEAN.test \
+	SL/REGEXPR/REGEXPR.test \
+	SL/SEQIO/SEQIO.test \
+	SL/TREE_READ/TREE_READ.test \
+	SL/TREEDISP/TREEDISP.test \
+	TOOLS/arb_consensus_tree.test \
+	TOOLS/arb_probe.test \
+	WINDOW/libWINDOW.test \
+
+TESTED_UNITS = \
 	$(UNITS_TESTED_FIRST) \
+	$(TEST_SANDBOXES) \
+	$(UNITS_RUNNING_LONG) \
 	$(UNITS_TESTED) \
 
-#	$(UNITS_WORKING)
-
 # see UNIT_TESTER/sym2testcode.pl@disableErrorOnUnitsWithoutTests
-
-#TESTED_UNITS = $(TESTED_UNITS_AUTO)
-TESTED_UNITS = $(TESTED_UNITS_MANUAL)
 
 # ----------------------------------------
 

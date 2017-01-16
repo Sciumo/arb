@@ -1380,7 +1380,10 @@ void TEST_paths() {
         TEST_EXPECT_IS_CANONICAL(file_in_nosuchpath);
 
         TEST_EXPECT_IS_CANONICAL("/sbin"); // existing (most likely)
+#if !defined(DARWIN)
+        // TEST_DISABLED_OSX: fails for darwin on jenkins (/tmp seems to be a symbolic link there)
         TEST_EXPECT_IS_CANONICAL("/tmp/arbtest.fig");
+#endif
         TEST_EXPECT_IS_CANONICAL("/arbtest.fig"); // not existing (most likely)
 
         TEST_EXPECT_CANONICAL_TO("./PARSIMONY/./../ARBDB/./arbdb.h",     "ARBDB/arbdb.h"); // test parent-path

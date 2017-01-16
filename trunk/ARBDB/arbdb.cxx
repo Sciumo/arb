@@ -2765,6 +2765,9 @@ void TEST_GB_atof() {
     TEST_EXPECT_SIMILAR(GB_atof("0.031"), 0.031, 0.0001); // @@@ make this fail, then fix it
 }
 
+#if !defined(DARWIN)
+// @@@ TEST_DISABLED_OSX: test fails to compile for OSX on build server
+// @@@ re-activate test later; see missing libs http://bugs.arb-home.de/changeset/11664#file2
 void TEST_999_strtod_replacement() {
     // caution: if it fails -> locale is not reset (therefore call with low priority 999)
     const char *old = setlocale(LC_NUMERIC, "de_DE.UTF-8");
@@ -2774,6 +2777,7 @@ void TEST_999_strtod_replacement() {
     }
     setlocale(LC_NUMERIC, old);
 }
+#endif
 
 static void test_another_shell() { delete new GB_shell; }
 static void test_opendb() { GB_close(GB_open("no.arb", "c")); }

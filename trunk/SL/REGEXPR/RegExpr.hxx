@@ -61,15 +61,21 @@ class RegExpr : virtual Noncopyable {
     std::string expression;                         // the regular expression
     bool        ignore_case;
 
-    mutable GBS_regex *comreg;                      // compiled regular expression (NULL if not compiled yet)
-    mutable RegMatch  *matches;                     // set by match (NULL if failed or not performed yet)
+    mutable GBS_regex   *comreg;                    // compiled regular expression (NULL if not compiled yet)
+    mutable RegMatch    *matches;                   // set by match (NULL if failed or not performed yet)
+    mutable std::string *failure;                   // set when regular expression fails to compile
 
-    void compile() const;
+    __ATTR__USERESULT bool compile() const;
     void perform_match(const char *str, size_t offset) const;
 
 public:
     RegExpr(const std::string& expression_, bool ignore_case);
     ~RegExpr();
+
+    const std::string *has_failed() const { if (!failure) IGNORE_RESULT(compile()); return failure; }
+
+    // all functions below may fail if expression fails to compile (done lazy)
+    // (not only) in case of failure they return NULL or 0
 
     size_t subexpr_count() const;
 
