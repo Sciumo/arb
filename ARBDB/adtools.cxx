@@ -1174,17 +1174,22 @@ void TEST_scan_db() {
     GB_shell  shell;
     GBDATA   *gb_main = GB_open("TEST_loadsave.arb", "r");
 
-
     TEST_EXPECT_SCANNED_EQUALS(NULL,
-                               "alignment/aligned,alignment/alignment_len,alignment/alignment_name,alignment/alignment_rem,alignment/alignment_type,alignment/alignment_write_security,alignment/auto_format,"
-                               "byte,bytes,bytes,bytes,"
-                               "extended/acc,extended/ali_16s/data,extended/aligned,extended/errors,extended/full_name,extended/name,"
+                               "\x03""alignment/aligned,\x03""alignment/alignment_len,\falignment/alignment_name,\falignment/alignment_rem,\falignment/alignment_type,\x03""alignment/alignment_write_security,\x03""alignment/auto_format,"
+                               "\x02""byte,"
+#if defined(DARWIN)
+                               // @@@ RESULT_MODIFIED_OSX: why does that happen?
+                               "\bbytes,\fbytes,\x03""bytes,"
+#else // !DARWIN
+                               "\x03""bytes,\bbytes,\fbytes,"
+#endif
+                               "\fextended/acc,\fextended/ali_16s/data,\fextended/aligned,\x03""extended/errors,\fextended/full_name,\fextended/name,"
                                "\nfloats,\tints,\tints_empty,"
-                               "key_data/key/key_hidden,key_data/key/key_name,key_data/key/key_type,"
-                               "species/AL,species/ARB_color,species/acc,species/ali_16s/data,species/bits_test,species/float_test,species/full_name,species/name,species/seqcheck,species/tax,"
-                               "str,str_percent,use");
+                               "\x03key_data/key/key_hidden,\fkey_data/key/key_name,\x03key_data/key/key_type,"
+                               "\fspecies/AL,\x03species/ARB_color,\fspecies/acc,\fspecies/ali_16s/data,\x06species/bits_test,\x04species/float_test,\fspecies/full_name,\fspecies/name,\fspecies/seqcheck,\fspecies/tax,"
+                               "\fstr,\fstr_percent,\fuse");
 
-    TEST_EXPECT_SCANNED_EQUALS("species", "/AL,/ARB_color,/acc,/ali_16s/data,/bits_test,/float_test,/full_name,/name,/seqcheck,/tax");
+    TEST_EXPECT_SCANNED_EQUALS("species", "\f/AL,\x03/ARB_color,\f/acc,\f/ali_16s/data,\x06/bits_test,\x04/float_test,\f/full_name,\f/name,\f/seqcheck,\f/tax");
 
     TEST_REJECT(GB_have_error());
     

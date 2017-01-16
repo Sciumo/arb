@@ -68,10 +68,9 @@ case $OSNAME in
   Darwin)
     echo "DARWIN := 1" >> $CFG
     echo "MACH := DARWIN" >> $CFG
-    UNIT_TESTS=0
     # OSX make causes random failures if called with '-j 2'
     # (e.g. target 'binlink' gets triggered multiple times, causing build failure when it's executed concurrently)
-    JMAKE=make
+    JMAKE="make --print-directory"
     ;;
   Linux)
     echo "LINUX := 1" >> $CFG
@@ -101,89 +100,76 @@ echo "SANITIZE := $SANITIZE" >> $CFG
 echo "COVERAGE := 0" >> $CFG
 # done with config.makefile
 
-# skip build?
-BUILD=1
-if [ "$MODE" == "NDEBUG" -a $UNIT_TESTS == 0 ]; then
-    echo "Modes NDEBUG and RELEASE are identical for $OSNAME"
-    BUILD=0
-fi
-
 # build, tar and test
-if [ $BUILD == 1 ]; then
-    # JMAKE="make"
-    if [ "$ARG" == "fake_build" ]; then
-        echo "Faking build"
-        echo "Faked arb.tgz"     > arb.tgz
-        echo "Faked arb-dev.tgz" > arb-dev.tgz
-    else
-        if [ "$ARG" == "from_tarball" ]; then
-            echo "Test clean before make (tarball build)"
-            ${JMAKE} clean
-        fi
-        ${JMAKE} build
-        ${JMAKE} tarfile_quick
+if [ "$ARG" == "fake_build" ]; then
+    echo "Faking build"
+    echo "Faked arb.tgz"     > arb.tgz
+    echo "Faked arb-dev.tgz" > arb-dev.tgz
+else
+    if [ "$ARG" == "from_tarball" ]; then
+        echo "Test clean before make (tarball build)"
+        ${JMAKE} clean
     fi
+    ${JMAKE} build
+    ${JMAKE} tarfile_quick
+fi
 
     # jenkins archieves all files matching "**/arb*.tgz"
     # jenkins publishes     files matching "**/arb*.tgz", but not "**/arb*dev*.tgz,**/arb*bin*.tgz"
 
-    if [ -n "${SVN_TAG:-}" ]; then
+if [ -n "${SVN_TAG:-}" ]; then
         # tagged build
-        VERSION_ID=${SVN_TAG}${TARSUF}
+    VERSION_ID=${SVN_TAG}${TARSUF}
         # remove arb-prefixes (added below)
-        VERSION_ID="${VERSION_ID##arb[-_]}"
-    else
+    VERSION_ID="${VERSION_ID##arb[-_]}"
+else
         # normal build
-        VERSION_ID=r${SVN_REVISION}${TARSUF}
-    fi
+    VERSION_ID=r${SVN_REVISION}${TARSUF}
+fi
 
-    VERSION_ID=arb-${VERSION_ID}
-    VERSION_ID_TARGET=${VERSION_ID}.${TGTNAME}
+VERSION_ID=arb-${VERSION_ID}
+VERSION_ID_TARGET=${VERSION_ID}.${TGTNAME}
 
-    if [ "$MODE" == "RELEASE" ]; then
-        if [ "${TGTNAME}" == "ubuntu1004-amd64" ]; then
+if [ "$MODE" == "RELEASE" ]; then
+    if [ "${TGTNAME}" == "ubuntu1004-amd64" ]; then
             # perform things needed only once (pack source, copy README + install script):
             # 1. pack source (svn version of slave and master must match!)
-            if [ "$ARG" == "fake_build" ]; then
-                echo "Faked ${VERSION_ID}-source.tgz" > ${VERSION_ID}-source.tgz
+        if [ "$ARG" == "fake_build" ]; then
+            echo "Faked ${VERSION_ID}-source.tgz" > ${VERSION_ID}-source.tgz
+        else
+            if [ "$ARG" == "from_tarball" ]; then
+                echo "Note: build from tarball - do not attempt to create a tarball"
             else
-                if [ "$ARG" == "from_tarball" ]; then
-                    echo "Note: build from tarball - do not attempt to create a tarball"
-                else
                     # check resource usage:
-                    ${JMAKE} check_res
+                ${JMAKE} check_res
 
                     # save tarball:
-                    ${JMAKE} save
+                ${JMAKE} save
                     # archived and published on ftp:
-                    cp --dereference arbsrc.tgz ${VERSION_ID}-source.tgz
-                    rm arbsrc*.tgz
-                fi
+                cp --dereference arbsrc.tgz ${VERSION_ID}-source.tgz
+                rm arbsrc*.tgz
             fi
-            # 2. move extra files into folder 'toftp' - content is copied to release directory
-            mkdir toftp
-            cp -p arb_README.txt toftp
-            cp -p arb_install.sh toftp
-            ls -al toftp
         fi
+            # 2. move extra files into folder 'toftp' - content is copied to release directory
+        mkdir toftp
+        cp -p arb_README.txt toftp
+        cp -p arb_install.sh toftp
+        ls -al toftp
+    fi
 
         # archived and published on ftp:
-        mv arb.tgz ${VERSION_ID_TARGET}.tgz
-    else
-        # only archived (needed by SINA):
-        mv arb.tgz ${VERSION_ID_TARGET}-bin.tgz
-    fi
-    # only archived (needed by SINA):
-    mv arb-dev.tgz ${VERSION_ID_TARGET}-dev.tgz
-
-    ${JMAKE} ut
-
-    echo "-------------------- compiled-in version info:"
-    (bin/arb_ntree --help || true)
-    echo "-------------------- existing tarballs:"
-    ls -al arb*.tgz
-    echo "--------------------"
+    mv arb.tgz ${VERSION_ID_TARGET}.tgz
 else
-    echo "Skipping this build."
-    # @@@ maybe need to fake unit-test-result here
+        # only archived (needed by SINA):
+    mv arb.tgz ${VERSION_ID_TARGET}-bin.tgz
 fi
+    # only archived (needed by SINA):
+mv arb-dev.tgz ${VERSION_ID_TARGET}-dev.tgz
+
+${JMAKE} ut
+
+echo "-------------------- compiled-in version info:"
+(bin/arb_ntree --help || true)
+echo "-------------------- existing tarballs:"
+ls -al arb*.tgz
+echo "--------------------"

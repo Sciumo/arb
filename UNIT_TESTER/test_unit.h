@@ -152,31 +152,43 @@ namespace arb_test {
         static char *readable_string(const char *s) {
             // quote like C does!
             if (s) {
-                size_t  len    = strlen(s)*4;
-                char   *res = (char*)malloc(len+2+1);
+                size_t  len     = strlen(s)*4;
+                char   *res     = (char*)malloc(len+2+1);
+                bool    needSep = false;
+                int     j       = 0;
 
-                int j     = 0;
                 res[j++] = '\"';
                 for (int i = 0; s[i]; ++i) {
                     unsigned char c = static_cast<unsigned char>(s[i]);
                     char esc = 0;
                     switch (c) {
+                        case '\a': esc = 'a'; break;
+                        case '\b': esc = 'b'; break;
+                        case '\f': esc = 'f'; break;
                         case '\n': esc = 'n'; break;
+                        case '\r': esc = 'r'; break;
                         case '\t': esc = 't'; break;
+                        case '\v': esc = 'v'; break;
                         case '\"': esc = '\"'; break;
                         case '\\': esc = '\\'; break;
-                        default: if (c<10) esc = c-1+'1'; break;
                     }
                     if (esc) {
                         res[j++] = '\\';
                         res[j++] = esc;
+                        needSep  = false;
                     }
                     else {
                         if (c >= 32 && c<127) {
+                            if (needSep && strchr("0123456789abcdefABCDEF", c) != 0) {
+                                res[j++] = '\"'; // break string
+                                res[j++] = '\"';
+                            }
                             res[j++] = c;
+                            needSep  = false;
                         }
                         else {
-                            j += sprintf(res+j, "\\x%02x", int(c));
+                            j       += sprintf(res+j, "\\x%02x", int(c));
+                            needSep  = true; // need to break string if next char is a hex-digit
                         }
                     }
                 }

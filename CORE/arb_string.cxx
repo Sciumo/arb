@@ -120,7 +120,8 @@ void TEST_arbtest_readable() {
     TEST_EXPECT_HEAPCOPY_EQUAL(val2hex(make_copy(6U)), "0x6");
     
     TEST_EXPECT_HEAPCOPY_EQUAL(val2readable(make_copy("some\ntext\twhich\"special\\chars")), "\"some\\ntext\\twhich\\\"special\\\\chars\"");
-    TEST_EXPECT_HEAPCOPY_EQUAL(val2readable(make_copy("a\1\2\x1a\x7e\x7f\x80\xfe\xff")), "\"a\\1\\2\\x1a~\\x7f\\x80\\xfe\\xff\"");
+    TEST_EXPECT_HEAPCOPY_EQUAL(val2readable(make_copy("a\x01\x02\x07\x08\x09\x0b\x0c\x0d\x1a\x22\x27\x5c\x7e\x7f\x80\xfe\xff")),
+                               /*                  */ "\"a\\x01\\x02\\a\\b\\t\\v\\f\\r\\x1a\\\"'\\\\~\\x7f\\x80\\xfe\\xff\"");
     TEST_EXPECT_HEAPCOPY_EQUAL(val2readable(make_copy((const char *)NULL)), "(null)");
     TEST_EXPECT_HEAPCOPY_EQUAL(val2readable(make_copy((const unsigned char *)NULL)), "(null)");
     TEST_EXPECT_HEAPCOPY_EQUAL(val2readable(make_copy((const signed char *)NULL)), "(null)");
@@ -402,6 +403,8 @@ public:
     }
 };
 
+#if !defined(__clang__)
+// TEST_DISABLED_CLANG: evaluation order differs under clang
 void TEST_single_eval() {
     readModified mod(5);
     TEST_EXPECT_EQUAL__BROKEN(mod.getAndMod(2), 2, 5); // now succeeds (this is no broken test; it tests behavior of TEST_EXPECT_EQUAL__BROKEN!)
@@ -416,6 +419,7 @@ void TEST_single_eval() {
     TEST_EXPECT_IN_RANGE__BROKEN(mod.getAndMod(20), 32, 34); // @@@ tested expression is evaluated twice
     TEST_EXPECT_EQUAL(mod.getAndMod(20), 20);
 }
+#endif
 
 enum MyEnum {
     MY_UNKNOWN,

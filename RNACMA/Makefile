@@ -10,13 +10,19 @@ cma_cflags:= $(cflags)
 SUPPRESS_WARNINGS=1# set to 0 to show warnings
 
 ifeq ($(SUPPRESS_WARNINGS),1)
-cma_cxxflags:= $(subst -Weffc++,,$(cma_cxxflags))
-cma_cxxflags:= $(subst -Wctor-dtor-privacy,,$(cma_cxxflags))
-cma_cxxflags:= $(subst -Wlogical-op,,$(cma_cxxflags))
-cma_cxxflags:= $(subst -Wunused-local-typedefs,,$(cma_cxxflags))
-cma_cxxflags:= $(cma_cxxflags) -Wno-deprecated-declarations -Wno-ignored-attributes
-cma_cflags:= $(subst -Wshadow,,$(cma_cflags))
-cma_cflags+= -Wno-unused-local-typedefs# this is included in -Wall
+ cma_cxxflags:= $(subst -Weffc++,,$(cma_cxxflags))
+ cma_cxxflags:= $(subst -Wctor-dtor-privacy,,$(cma_cxxflags))
+ cma_cxxflags:= $(subst -Wlogical-op,,$(cma_cxxflags))
+ cma_cxxflags:= $(subst -Wunused-local-typedefs,,$(cma_cxxflags))
+ cma_cxxflags:= $(cma_cxxflags) -Wno-deprecated-declarations -Wno-ignored-attributes
+ cma_cflags:= $(subst -Wshadow,,$(cma_cflags))
+ ifeq ($(USE_CLANG),1)
+# clang spams warnings about unused parameters in Eigen (-> skip them)
+  cma_cxxflags+= -Wno-unused-parameter -Wno-unused-variable
+ else
+# -Wunused-local-typedefs is included in -Wall -> disable (not for clang)
+  cma_cflags+= -Wno-unused-local-typedefs
+ endif
 endif
 
 cma_cflags+= -I../HEADERLIBS
