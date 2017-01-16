@@ -355,7 +355,7 @@ void TEST_open_socket() {
     int server_pid, server_status;
 
     // set up port names
-    char *unix_socket = arb_shell_expand(":$ARBHOME/UNIT_TESTER/sockets/test.socket");
+    char *unix_socket = arb_shell_expand(":$ARBHOME/UNIT_TESTER/sok/test.socket");
     char tcp_socket[sizeof("65536")], tcp_socket2[sizeof("localhost:65536")];
     int port = 32039;
     for (; port < 32139; port++) {

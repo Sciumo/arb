@@ -68,7 +68,7 @@ my %ignored_subdirs = map { $_ => 1; } (
                                         'UNIT_TESTER/flags',
                                         'UNIT_TESTER/logs',
                                         'UNIT_TESTER/run',
-                                        'UNIT_TESTER/sockets',
+                                        'UNIT_TESTER/sok',
                                         'UNIT_TESTER/tests',
                                         'UNIT_TESTER/valgrind',
                                         'bin',

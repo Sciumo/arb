@@ -1132,6 +1132,7 @@ static void clear_comment_cb(AW_window *aww) {
     RegExpr datedLine("^([A-Z][a-z]{2}\\s){2}[0-9]+\\s([0-9]{2}:){2}[0-9]{2}\\s[0-9]{4}:\\s", false); // matches lines created with GBS_log_action_to(..., stamp=true)
     for (int i = line.size()-1; i >= 0; --i) {
         const RegMatch *match = datedLine.match(line[i]);
+        gb_assert(implicated(!match, !datedLine.has_failed())); // assert RegExpr compiles
         if (match && match->didMatch()) {
             line.safe_remove(i);
             removedDatedLines = true;
