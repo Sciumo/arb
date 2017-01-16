@@ -181,6 +181,7 @@ static GB_ERROR mp_file2list(const CharPtrArray& line, StrArray& display, StrArr
             const RegMatch *match = reg_saved.match(line[i]);
             if (!match || reg_saved.subexpr_count() != 5) {
                 isSavedFormat = false;
+                if (reg_saved.has_failed()) aw_message(reg_saved.get_error());
             }
             else {
                 char T_or_U = T_or_U_for_load ? T_or_U_for_load : 'U';
@@ -274,10 +275,13 @@ static GB_ERROR mp_file2list(const CharPtrArray& line, StrArray& display, StrArr
                         value.put(ARB_strdup(entry));
                     }
                 }
-                else if (new_format && probe[0]) {
-                    error = GBS_global_string("can't parse line '%s'", line[i]);
+                else {
+                    if (reg_designed.has_failed()) aw_message(reg_designed.get_error());
+                    if (new_format && probe[0]) {
+                        error = GBS_global_string("can't parse line '%s'", line[i]);
+                    }
+                    // (when loading old format -> silently ignore non-matching lines)
                 }
-                // (when loading old format -> silently ignore non-matching lines)
 
                 free(probe);
                 free(description);

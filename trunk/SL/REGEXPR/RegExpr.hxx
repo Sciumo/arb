@@ -15,6 +15,9 @@
 #ifndef ARBTOOLS_H
 #include <arbtools.h>
 #endif
+#ifndef ARB_MSG_H
+#include <arb_msg.h>
+#endif
 #ifndef ARB_ASSERT_H
 #include <arb_assert.h>
 #endif
@@ -73,6 +76,10 @@ public:
     ~RegExpr();
 
     const std::string *has_failed() const { if (!failure) IGNORE_RESULT(compile()); return failure; }
+    GB_ERROR get_error() const {
+        const std::string *failed = has_failed();
+        return failed ? GBS_global_string("Invalid RegExpr '%s' (Reason: %s)", expression.c_str(), failed->c_str()) : NULL;
+    }
 
     // all functions below may fail if expression fails to compile (done lazy)
     // (not only) in case of failure they return NULL or 0

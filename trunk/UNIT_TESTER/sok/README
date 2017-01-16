@@ -1,0 +1,14 @@
+
+This directory is a good place for sockets used by unit-tests.
+
+Note: OSX socket names are limited to 104 characters
+      => do not define too long socket names
+      ("dbserver.socket" is already near the limit)
+
+
+List of currently used sockets:
+
+        dbserver.socket
+        pt.socket
+        ptgene.socket
+        test.socket

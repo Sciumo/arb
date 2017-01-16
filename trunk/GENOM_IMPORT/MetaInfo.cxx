@@ -138,6 +138,7 @@ void References::add_dbid(const string& content) {
     const RegMatch *dbid_start = reg_dbid.match(content);
 
     if (!dbid_start) {
+        if (reg_dbid.has_failed()) throw reg_dbid.get_error();
         throw GBS_global_string("Expected database reference id (e.g. 'DOI; ' or 'PUBMED; ')");
     }
     else {

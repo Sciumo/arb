@@ -175,6 +175,7 @@ MetaInfo.o: MetaTag.h
 MetaInfo.o: types.h
 MetaInfo.o: $(ARBHOME)/INCLUDE/arb_assert.h
 MetaInfo.o: $(ARBHOME)/INCLUDE/arb_core.h
+MetaInfo.o: $(ARBHOME)/INCLUDE/arb_msg.h
 MetaInfo.o: $(ARBHOME)/INCLUDE/arbtools.h
 MetaInfo.o: $(ARBHOME)/INCLUDE/attributes.h
 MetaInfo.o: $(ARBHOME)/INCLUDE/cxxforward.h

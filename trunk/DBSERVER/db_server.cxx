@@ -334,7 +334,7 @@ void TEST_SLOW_dbserver() {
     TEST_RUN_TOOL_FAILS("arb_db_server -X");
     TEST_RUN_TOOL_FAILS("arb_db_server brzl");
 
-    char *sock = ARB_strdup(GB_path_in_ARBHOME("UNIT_TESTER/sockets/dbserver.socket"));
+    char *sock = ARB_strdup(GB_path_in_ARBHOME("UNIT_TESTER/sok/dbserver.socket"));
     char *tcp  = GBS_global_string_copy(":%s", sock);
     char *db   = ARB_strdup(GB_path_in_ARBHOME("UNIT_TESTER/run/TEST_loadsave.arb"));
 

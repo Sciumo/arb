@@ -1492,6 +1492,7 @@ static char *extract_locations(const char *probe_design_result) {
 
                 designed = eol ? eol+1 : NULL;
             }
+            arb_assert(implicated(designed, !reg_designed.has_failed())); // assert RegExpr compiled
 
             return result.release();
         }
@@ -2426,8 +2427,8 @@ void TEST_SLOW_variable_defaults_in_server() {
 
     const char *servername = GBS_read_arb_tcp(server_tag);
     {
-        char *socketname = GBS_global_string_copy(":%s", GB_path_in_ARBHOME("UNIT_TESTER/sockets/pt.socket"));
-        TEST_EXPECT_EQUAL(servername, socketname); // as defined in ../lib/arb_tcp.dat@ARB_TEST_PT_SERVER
+        char *socketname = GBS_global_string_copy(":%s", GB_path_in_ARBHOME("UNIT_TESTER/sok/pt.socket"));
+        TEST_EXPECT_EQUAL(servername, socketname); // as defined in ../lib/arb_tcp_org.dat@ARB_TEST_PT_SERVER
         free(socketname);
     }
 
