@@ -2674,6 +2674,95 @@ void TEST_SLOW_optimize() {
     TEST_EXPECT_NO_ERROR(GBK_system(GBS_global_string("rm %s %s %s %s", target_ascii, nonopti, optimized, reoptimized)));
 }
 
+void TEST_ticket_742() {
+    // reproduce problem reported in ticket #742
+    GB_shell shell;
+    {
+        const char *opti_db = "TEST_opti_expected.arb";    // expected result after optimize
+        GBDATA     *gb_main = GBT_open(opti_db, "rw");     // use GBT_open to create index for 'name'
+
+        for (int suf = 2; suf<=4; ++suf) {
+            char *sainame     = GBS_global_string_copy("forcecompress_%i", suf);
+            char *mod_sainame = GBS_global_string_copy("%s.mod", sainame);
+
+            GBDATA *gb_sai_name;
+            {
+                GB_transaction ta(gb_main);
+
+                GBDATA *gb_sai = GBT_find_SAI(gb_main, sainame);    TEST_REJECT_NULL(gb_sai);
+                gb_sai_name    = GB_entry(gb_sai, "name");          TEST_REJECT_NULL(gb_sai_name);
+
+                TEST_EXPECT_EQUAL(GB_read_char_pntr(gb_sai_name), sainame);
+
+                TEST_EXPECT_NO_ERROR(GB_write_string(gb_sai_name, mod_sainame));
+                TEST_EXPECT_EQUAL(GB_read_char_pntr(gb_sai_name), mod_sainame); // fixed
+
+                switch (suf) {
+                    case 2:
+                        // do nothing special (only test value in next TA below)
+                        break;
+                    case 3:
+                        // flushing the cache "solves" the problem => GB_write_string does not flush correctly
+                        GB_flush_cache(gb_sai_name);
+                        TEST_EXPECT_EQUAL(GB_read_char_pntr(gb_sai_name), mod_sainame);
+                        break;
+                    case 4:
+                        // writing twice also "solves" the problem
+                        TEST_EXPECT_NO_ERROR(GB_write_string(gb_sai_name, mod_sainame));
+                        TEST_EXPECT_EQUAL(GB_read_char_pntr(gb_sai_name), mod_sainame);
+                        break;
+
+
+                    default:
+                        TEST_REJECT(true);
+                        break;
+                }
+            }
+
+            {
+                GB_transaction ta(gb_main);
+                TEST_EXPECT_EQUAL(GB_read_char_pntr(gb_sai_name), mod_sainame); // ok in next TA
+            }
+
+            free(mod_sainame);
+            free(sainame);
+        }
+
+        {
+            GB_transaction ta(gb_main);
+
+            GBDATA *gb_species = GBT_find_species(gb_main, "FrnPhilo");    TEST_REJECT_NULL(gb_species);
+            GBDATA *gb_data    = GB_create(gb_species, "data", GB_STRING); TEST_REJECT_NULL(gb_data);
+
+            const char *seq1 = ".....................AUUCUGGUU-----GA--U-CC-U-G------------..............";
+            const char *seq2 = "........A-A--CU---------------C-A-A-A-G-GA-G--AC---A-C-U-G...............";
+
+            TEST_EXPECT_NO_ERROR(GB_write_string(gb_data, seq1));
+            TEST_EXPECT_EQUAL(GB_read_char_pntr(gb_data), seq1);
+            TEST_EXPECT_EQUAL(gb_data->flags.compressed_data, 1);
+            TEST_EXPECT_EQUAL(gb_data->flags2.extern_data, 1);
+
+            TEST_EXPECT_NO_ERROR(GB_write_string(gb_data, seq2));
+            TEST_EXPECT_EQUAL(GB_read_char_pntr(gb_data), seq2);
+            TEST_EXPECT_EQUAL(gb_data->flags.compressed_data, 1);
+            TEST_EXPECT_EQUAL(gb_data->flags2.extern_data, 1);
+
+            TEST_EXPECT_NO_ERROR(GB_create_index(GBT_get_species_data(gb_main), "data", GB_IGNORE_CASE, 20));
+
+            TEST_EXPECT_NO_ERROR(GB_write_string(gb_data, seq1));
+            TEST_EXPECT_EQUAL(GB_read_char_pntr(gb_data), seq1); // fixed
+
+            TEST_EXPECT_NO_ERROR(GB_write_string(gb_data, seq2));
+            TEST_EXPECT_EQUAL(GB_read_char_pntr(gb_data), seq2); // seems to work ...
+
+            GB_flush_cache(gb_data);
+            TEST_EXPECT_EQUAL(GB_read_char_pntr(gb_data), seq2); // fixed
+        }
+
+        GB_close(gb_main);
+    }
+}
+
 void TEST_streamed_ascii_save_asUsedBy_silva_pipeline() {
     GB_shell shell;
 

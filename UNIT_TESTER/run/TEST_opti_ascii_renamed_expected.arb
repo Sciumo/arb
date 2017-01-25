@@ -1138,6 +1138,56 @@ extended_data		%% (%
 		%) /*extended*/
 
 	extended		%% (%
+		name		:7000	"forcecompress_01"
+		showsec			%i 0
+		%) /*extended*/
+
+	extended		%% (%
+		name		:7000	"forcecompress_2"
+		showsec			%i 0
+		%) /*extended*/
+
+	extended		%% (%
+		name		:7000	"forcecompress_3"
+		showsec			%i 0
+		%) /*extended*/
+
+	extended		%% (%
+		name		:7000	"forcecompress_4"
+		showsec			%i 0
+		%) /*extended*/
+
+	extended		%% (%
+		name		:7000	"forcecompress_5"
+		showsec			%i 0
+		%) /*extended*/
+
+	extended		%% (%
+		name		:7000	"forcecompress_6"
+		showsec			%i 0
+		%) /*extended*/
+
+	extended		%% (%
+		name		:7000	"forcecompress_7"
+		showsec			%i 0
+		%) /*extended*/
+
+	extended		%% (%
+		name		:7000	"forcecompress_8"
+		showsec			%i 0
+		%) /*extended*/
+
+	extended		%% (%
+		name		:7000	"forcecompress_9"
+		showsec			%i 0
+		%) /*extended*/
+
+	extended		%% (%
+		name		:7000	"forcecompress_10"
+		showsec			%i 0
+		%) /*extended*/
+
+	extended		%% (%
 		name		:7000	"ECOLI"
 		errors			%i 0
 		acc			"J01695"
