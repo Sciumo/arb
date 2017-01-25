@@ -1303,10 +1303,29 @@ GB_ERROR GB_write_float(GBDATA *gbd, float f) {
     return 0;
 }
 
-GB_ERROR gb_write_compressed_pntr(GBENTRY *gbe, const char *s, long memsize, long stored_size) {
+inline void gb_save_extern_data_in_ts__and_uncache(GBENTRY *gbe) {
+    // order of the following commands is important:
+    // gb_save_extern_data_in_ts may recreate a cache-entry under the following conditions:
+    //  - gbe is indexed AND
+    //  - gbe is stored compressed (and compression really takes place)
+    //
+    // Calling these commands in reversed order (as done until [15622])
+    // had the following effects:
+    // - writing modified data to an entry had no effect (cache still contained old value)
+    // - after saving and reloading the database, the modified value was effective
+    //
+    // Happened e.g. when copying an SAI (if dictionary compression occurred for SAI/name). See #742.
+
+    gb_save_extern_data_in_ts(gbe); // Warning: might undo effect of gb_uncache if called afterwards
     gb_uncache(gbe);
-    gb_save_extern_data_in_ts(gbe);
+}
+
+GB_ERROR gb_write_compressed_pntr(GBENTRY *gbe, const char *s, long memsize, long stored_size) {
+    gb_save_extern_data_in_ts__and_uncache(gbe);
+
     gbe->flags.compressed_data = 1;
+
+    gb_assert(!gbe->cache_index); // insert_data() will recreate the cache-entry (if entry is_indexed)
     gbe->insert_data((char *)s, stored_size, (size_t)memsize);
     gb_touch_entry(gbe, GB_NORMAL_CHANGE);
 
@@ -1343,8 +1362,7 @@ GB_ERROR GB_write_pntr(GBDATA *gbd, const char *s, size_t bytes_size, size_t sto
 
     gb_assert(implicated(type == GB_STRING, stored_size == bytes_size-1)); // size constraint for strings not fulfilled!
 
-    gb_uncache(gbe);
-    gb_save_extern_data_in_ts(gbe);
+    gb_save_extern_data_in_ts__and_uncache(gbe);
 
     int compression_mask = gb_get_compression_mask(Main, key, type);
 
@@ -1365,6 +1383,7 @@ GB_ERROR GB_write_pntr(GBDATA *gbd, const char *s, size_t bytes_size, size_t sto
         memsize = bytes_size;
     }
 
+    gb_assert(!gbe->cache_index); // insert_data() will recreate the cache-entry (if entry is_indexed)
     gbe->insert_data(d, stored_size, memsize);
     gb_touch_entry(gbe, GB_NORMAL_CHANGE);
     GB_DO_CALLBACKS(gbe);
