@@ -71,7 +71,7 @@ enum GB_TYPES {                                     // supported DB entry types
     GB_BYTES       = 8,
     GB_INTS        = 9,
     GB_FLOATS      = 10,
-    GB_LINK        = 11,
+    GB_LINK        = 11, // @@@ obsolete -> elim code (but stay backward compatible)
     GB_STRING      = 12,
     GB_STRING_SHRT = 13,                            // used automatically during save
     // 14 is unused

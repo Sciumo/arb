@@ -11,7 +11,7 @@
 #include "gb_main.h"
 #include "gb_data.h"
 
-GBDATA *GB_follow_link(GBDATA *gb_link) {
+GBDATA *GB_follow_link(GBDATA *gb_link) { // @@@ obsolete (will never resolve) -> elim
     char *s;
     const char *link;
     char c;
@@ -37,15 +37,3 @@ GBDATA *GB_follow_link(GBDATA *gb_link) {
     return result;
 }
 
-
-GB_ERROR GB_install_link_follower(GBDATA *gb_main, const char *link_type, GB_Link_Follower link_follower) {
-    GB_ERROR error = 0;
-    GB_MAIN_TYPE *Main = GB_MAIN(gb_main);
-    if (!Main->resolve_link_hash) {
-        Main->resolve_link_hash = GBS_create_hash(256, GB_MIND_CASE);
-    }
-    error = GB_check_link_name(link_type);
-    if (error) return error;
-    GBS_write_hash(Main->resolve_link_hash, link_type, (long)link_follower);
-    return 0;
-}

@@ -91,14 +91,12 @@ AP_tree_root::AP_tree_root(AliView *aliView, AP_sequence *seq_proto, bool add_de
       gone_tree_name(NULL),
       tree_timer(0),
       species_timer(0),
-      table_timer(0),
       rates(NULL)
 {
     GBDATA         *gb_main = get_gb_main();
     GB_transaction  ta(gb_main);
 
     gb_species_data = GBT_get_species_data(gb_main);
-    gb_table_data   = GB_search(gb_main, "table_data", GB_CREATE_CONTAINER);
 }
 
 AP_tree_root::~AP_tree_root() {
@@ -119,9 +117,7 @@ bool AP_tree_root::is_tree_updated() {
 bool AP_tree_root::is_species_updated() {
     if (gb_species_data) {
         GB_transaction ta(gb_species_data);
-        return
-            GB_read_clock(gb_species_data)>species_timer ||
-            GB_read_clock(gb_table_data)>table_timer;
+        return GB_read_clock(gb_species_data)>species_timer;
     }
     return true;
 }
@@ -132,7 +128,6 @@ void AP_tree_root::update_timers() {
         GBDATA         *gbtree = get_gb_tree();
         if (gbtree) tree_timer = GB_read_clock(gbtree);
         species_timer          = GB_read_clock(gb_species_data);
-        table_timer            = GB_read_clock(gb_table_data);
     }
 }
 

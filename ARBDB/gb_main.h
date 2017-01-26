@@ -154,8 +154,7 @@ public:
     GB_NUMHASH   *remote_hash;
 
     GB_HASH *command_hash;
-    GB_HASH *resolve_link_hash;
-    GB_HASH *table_hash;
+    GB_HASH *resolve_link_hash; // @@@ no longer initialized -> elim
 
     gb_close_callback_list *close_callbacks;
 

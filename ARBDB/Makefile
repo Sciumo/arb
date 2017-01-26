@@ -41,7 +41,6 @@ GB_T =  \
 	aditem.o \
 	adname.o \
 	adseqcompr.o \
-	adtables.o \
 	adtools.o \
 	adtree.o \
         adali.o \
@@ -1188,40 +1187,6 @@ adsystem.o: $(ARBHOME)/INCLUDE/smartptr.h
 adsystem.o: $(ARBHOME)/INCLUDE/static_assert.h
 adsystem.o: $(ARBHOME)/INCLUDE/test_global.h
 adsystem.o: $(ARBHOME)/INCLUDE/ttypes.h
-
-adtables.o: ad_cb.h
-adtables.o: ad_cb_prot.h
-adtables.o: ad_prot.h
-adtables.o: ad_t_prot.h
-adtables.o: arbdb.h
-adtables.o: arbdb_base.h
-adtables.o: arbdbt.h
-adtables.o: gb_cb.h
-adtables.o: gb_data.h
-adtables.o: gb_local.h
-adtables.o: gb_main.h
-adtables.o: gb_memory.h
-adtables.o: gb_prot.h
-adtables.o: gb_storage.h
-adtables.o: $(ARBHOME)/INCLUDE/arb_assert.h
-adtables.o: $(ARBHOME)/INCLUDE/arb_core.h
-adtables.o: $(ARBHOME)/INCLUDE/arb_error.h
-adtables.o: $(ARBHOME)/INCLUDE/arb_mem.h
-adtables.o: $(ARBHOME)/INCLUDE/arb_msg.h
-adtables.o: $(ARBHOME)/INCLUDE/arb_string.h
-adtables.o: $(ARBHOME)/INCLUDE/arbtools.h
-adtables.o: $(ARBHOME)/INCLUDE/attributes.h
-adtables.o: $(ARBHOME)/INCLUDE/cb.h
-adtables.o: $(ARBHOME)/INCLUDE/cb_base.h
-adtables.o: $(ARBHOME)/INCLUDE/cbtypes.h
-adtables.o: $(ARBHOME)/INCLUDE/cxxforward.h
-adtables.o: $(ARBHOME)/INCLUDE/downcast.h
-adtables.o: $(ARBHOME)/INCLUDE/dupstr.h
-adtables.o: $(ARBHOME)/INCLUDE/gccver.h
-adtables.o: $(ARBHOME)/INCLUDE/smartptr.h
-adtables.o: $(ARBHOME)/INCLUDE/static_assert.h
-adtables.o: $(ARBHOME)/INCLUDE/test_global.h
-adtables.o: $(ARBHOME)/INCLUDE/ttypes.h
 
 adtcp.o: ad_prot.h
 adtcp.o: ad_t_prot.h

@@ -300,7 +300,6 @@ GB_MAIN_TYPE::GB_MAIN_TYPE(const char *db_path)
       remote_hash(NULL),
       command_hash(NULL),
       resolve_link_hash(NULL),
-      table_hash(NULL),
       close_callbacks(NULL),
       this_user(NULL)
 {
@@ -318,7 +317,6 @@ GB_MAIN_TYPE::~GB_MAIN_TYPE() {
     release_main_idx();
 
     if (command_hash)      GBS_free_hash(command_hash);
-    if (table_hash)        GBS_free_hash(table_hash);
     if (resolve_link_hash) GBS_free_hash(resolve_link_hash);
     if (remote_hash)       GBS_free_numhash(remote_hash);
 
