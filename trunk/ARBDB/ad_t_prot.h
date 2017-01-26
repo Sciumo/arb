@@ -99,18 +99,6 @@ GB_ERROR GBT_commit_rename_session(void) __ATTR__USERESULT;
 GB_ERROR GBT_compress_sequence_tree2(GBDATA *gbd, const char *tree_name, const char *ali_name) __ATTR__USERESULT;
 void GBT_compression_test(struct Unfixed_cb_parameter *, GBDATA *gb_main);
 
-/* adtables.cxx */
-GB_ERROR GBT_install_table_link_follower(GBDATA *gb_main);
-GBDATA *GBT_open_table(GBDATA *gb_table_root, const char *table_name, bool read_only);
-GBDATA *GBT_first_table(GBDATA *gb_main);
-GBDATA *GBT_next_table(GBDATA *gb_table);
-GBDATA *GBT_first_table_entry(GBDATA *gb_table);
-GBDATA *GBT_next_table_entry(GBDATA *gb_table_entry);
-GBDATA *GBT_first_table_field(GBDATA *gb_table);
-GBDATA *GBT_next_table_field(GBDATA *gb_table_field);
-GBDATA *GBT_find_table_field(GBDATA *gb_table, const char *id);
-GBDATA *GBT_open_table_field(GBDATA *gb_table, const char *fieldname, GB_TYPES type_of_field);
-
 /* adtools.cxx */
 GBDATA *GBT_create(GBDATA *father, const char *key, long delete_level);
 GBDATA *GBT_find_or_create(GBDATA *father, const char *key, long delete_level);

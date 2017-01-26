@@ -174,7 +174,6 @@ int GB_get_ACISRT_trace(void);
 
 /* adlink.cxx */
 GBDATA *GB_follow_link(GBDATA *gb_link);
-GB_ERROR GB_install_link_follower(GBDATA *gb_main, const char *link_type, GB_Link_Follower link_follower);
 
 /* admap.cxx */
 bool GB_supports_mapfile(void);

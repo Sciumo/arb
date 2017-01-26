@@ -500,12 +500,6 @@ GB_ERROR GBT_write_float(GBDATA *gb_container, const char *fieldpath, float cont
 }
 
 
-static GBDATA *GB_test_link_follower(GBDATA *gb_main, GBDATA */*gb_link*/, const char *link) {
-    GBDATA *linktarget = GB_search(gb_main, "tmp/link/string", GB_STRING);
-    GB_write_string(linktarget, GBS_global_string("Link is '%s'", link));
-    return GB_get_father(linktarget);
-}
-
 // --------------------
 //      save & load
 
@@ -514,7 +508,6 @@ GBDATA *GBT_open(const char *path, const char *opent) {
      *  Additionally:
      *  - disable saving in the PT_SERVER directory,
      *  - create an index for species and extended names (server only!),
-     *  - install table link followers (maybe obsolete)
      *
      * @param path filename of the DB
      * @param opent see GB_login()
@@ -541,14 +534,6 @@ GBDATA *GBT_open(const char *path, const char *opent) {
                         error                 = GB_create_index(extended_data, "name", GB_IGNORE_CASE, hash_size);
                     }
                 }
-            }
-            if (!error) {
-                {
-                    GB_MAIN_TYPE *Main = GB_MAIN(gbd);
-                    Main->table_hash = GBS_create_hash(256, GB_MIND_CASE);
-                    GB_install_link_follower(gbd, "REF", GB_test_link_follower);
-                }
-                GBT_install_table_link_follower(gbd);
             }
         }
         if (error) {
